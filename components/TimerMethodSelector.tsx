@@ -16,28 +16,35 @@ const timerMethods: TimerMethod[] = [
     name: 'Pomodoro',
     duration: 25,
     breakDuration: 5,
-    description: '25 min work, 5 min break'
+    description: 'Classic focused bursts'
   },
   {
     id: 'fifty-ten',
     name: '50/10 Method',
     duration: 50,
     breakDuration: 10,
-    description: '50 min work, 10 min break'
+    description: 'Extended focus sessions'
   },
   {
     id: 'ninety-fifteen',
     name: '90/15 Method',
     duration: 90,
     breakDuration: 15,
-    description: '90 min work, 15 min break'
+    description: 'Deep work blocks'
   },
   {
     id: 'two-thirty',
     name: '2 Hour Deep Work',
     duration: 120,
     breakDuration: 30,
-    description: '2 hour work, 30 min break'
+    description: 'Maximum focus time'
+  },
+  {
+    id: 'custom',
+    name: 'Custom Timer',
+    duration: 0,
+    breakDuration: 0,
+    description: 'Design your own cycle'
   }
 ]
 
@@ -48,7 +55,7 @@ interface TimerMethodSelectorProps {
 
 const TimerMethodSelector = ({ selectedMethod, onMethodSelect }: TimerMethodSelectorProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl animate-slide-in">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl animate-slide-in">
       {timerMethods.map((method, index) => (
         <div
           key={method.id}

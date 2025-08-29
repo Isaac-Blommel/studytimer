@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   description: "Automate your study sessions with timed breaks to prevent burnout",
 };
 
+import { AuthProvider } from '../contexts/AuthContext';
+import ProtectedRoute from '../components/ProtectedRoute';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,9 +30,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
       >
-        <div className="min-h-screen">
-          {children}
-        </div>
+        <AuthProvider>
+          <ProtectedRoute>
+            <div className="min-h-screen">
+              {children}
+            </div>
+          </ProtectedRoute>
+        </AuthProvider>
       </body>
     </html>
   );
