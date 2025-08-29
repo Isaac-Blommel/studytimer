@@ -54,43 +54,59 @@ interface TimerMethodSelectorProps {
 }
 
 const TimerMethodSelector = ({ selectedMethod, onMethodSelect }: TimerMethodSelectorProps) => {
+  // Separate preset methods from custom timer
+  const presetMethods = timerMethods.slice(0, 4) // First 4 methods
+  const customMethod = timerMethods[4] // Custom timer method
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl animate-slide-in">
-      {timerMethods.map((method, index) => (
-        <div
-          key={method.id}
-          className={`glass-effect rounded-xl p-6 cursor-pointer transition-all duration-300 transform hover:scale-105 button-glow ${
-            selectedMethod === method.id
-              ? 'ring-2 ring-primary bg-primary/10 scale-105'
-              : 'hover:bg-card/50'
-          }`}
-          onClick={() => onMethodSelect(method)}
-          style={{ animationDelay: `${index * 0.1}s` }}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-foreground">{method.name}</h3>
-            <div className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
-              selectedMethod === method.id 
-                ? 'border-primary bg-primary' 
-                : 'border-muted'
-            }`} />
+    <div className="w-full max-w-5xl animate-slide-in space-y-8">
+      {/* 2x2 Grid for preset methods */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {presetMethods.map((method, index) => (
+          <div
+            key={method.id}
+            className="bg-white/15 backdrop-blur-sm border border-white/30 rounded-xl p-8 cursor-pointer transition-all duration-300 transform hover:scale-105 hover:bg-white/25 hover:border-white/40 shadow-lg hover:shadow-xl"
+            onClick={() => onMethodSelect(method)}
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            <div className="mb-4">
+              <h3 className="text-xl font-bold text-white">{method.name}</h3>
+            </div>
+            
+            <p className="text-gray-200 text-base mb-6">{method.description}</p>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-accent font-semibold text-base">Work Time</span>
+                <span className="text-white font-mono text-lg font-bold">{method.duration} min</span>
+              </div>
+              <div className="w-px h-10 bg-white/40" />
+              <div className="flex flex-col">
+                <span className="text-warning font-semibold text-base">Break Time</span>
+                <span className="text-white font-mono text-lg font-bold">{method.breakDuration} min</span>
+              </div>
+            </div>
           </div>
-          
-          <p className="text-muted text-sm mb-4">{method.description}</p>
-          
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex flex-col">
-              <span className="text-accent font-medium">Work Time</span>
-              <span className="text-foreground font-mono">{method.duration} min</span>
-            </div>
-            <div className="w-px h-8 bg-border" />
-            <div className="flex flex-col">
-              <span className="text-warning font-medium">Break Time</span>
-              <span className="text-foreground font-mono">{method.breakDuration} min</span>
-            </div>
+        ))}
+      </div>
+
+      {/* Custom Timer - wider button below */}
+      <div
+        className="bg-white/15 backdrop-blur-sm border border-white/30 rounded-xl p-8 cursor-pointer transition-all duration-300 transform hover:scale-105 hover:bg-white/25 hover:border-white/40 shadow-lg hover:shadow-xl w-full"
+        onClick={() => onMethodSelect(customMethod)}
+        style={{ animationDelay: `${4 * 0.1}s` }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-white mb-3">{customMethod.name}</h3>
+            <p className="text-gray-200 text-base">{customMethod.description}</p>
+          </div>
+          <div className="ml-8">
+            <div className="text-accent font-semibold text-base">Fully Customizable</div>
+            <div className="text-white font-mono text-lg font-bold">Your schedule</div>
           </div>
         </div>
-      ))}
+      </div>
     </div>
   )
 }
