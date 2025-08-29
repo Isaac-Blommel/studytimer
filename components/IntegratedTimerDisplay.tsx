@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import PieChartTimer from './PieChartTimer'
-import { calculateStudySegments, getCurrentSegmentInfo, shouldTransition, StudySegment } from '../utils/studySegments'
+import { calculateStudySegments, getCurrentSegmentInfo, StudySegment } from '../utils/studySegments'
+import { useTimer } from '../contexts/TimerContext'
+import { notifications } from '../utils/notifications'
 
 interface IntegratedTimerDisplayProps {
   duration: number
@@ -13,25 +15,24 @@ interface IntegratedTimerDisplayProps {
 }
 
 const IntegratedTimerDisplay = ({ 
-  duration, 
-  isActive, 
-  isPaused, 
   onComplete, 
   onSegmentChange 
 }: IntegratedTimerDisplayProps) => {
-  const [timeLeft, setTimeLeft] = useState(duration * 60)
-  const [currentTime, setCurrentTime] = useState(0) // elapsed time in seconds
+  const { timerState } = useTimer()
   const [segments, setSegments] = useState<StudySegment[]>([])
   const [currentSegment, setCurrentSegment] = useState<StudySegment | null>(null)
   const [lastSegmentType, setLastSegmentType] = useState<'study' | 'break' | null>(null)
+  
+  // Calculate current time from timer context
+  const currentTime = (timerState.studyDuration * 60) - timerState.timeLeft
 
-  // Initialize segments when duration changes
+  // Initialize segments when timer context duration changes
   useEffect(() => {
-    const newSegments = calculateStudySegments(duration)
-    setSegments(newSegments)
-    setTimeLeft(duration * 60)
-    setCurrentTime(0)
-  }, [duration])
+    if (timerState.studyDuration > 0) {
+      const newSegments = calculateStudySegments(timerState.studyDuration)
+      setSegments(newSegments)
+    }
+  }, [timerState.studyDuration])
 
   // Update current segment based on elapsed time
   useEffect(() => {
@@ -42,46 +43,40 @@ const IntegratedTimerDisplay = ({
       if (segmentInfo) {
         setCurrentSegment(segmentInfo.segment)
         
-        // Notify parent of segment changes
+        // Notify parent of segment changes and show notifications
         if (lastSegmentType !== segmentInfo.segment.type) {
           setLastSegmentType(segmentInfo.segment.type)
           onSegmentChange?.(segmentInfo.segment.type)
+          
+          // Show notification for segment transitions
+          if (timerState.isActive && !timerState.isPaused) {
+            const segmentDuration = segmentInfo.segment.end - segmentInfo.segment.start
+            if (segmentInfo.segment.type === 'break') {
+              notifications.showBreakStart(segmentDuration)
+              notifications.playSound('break')
+            } else if (lastSegmentType === 'break') {
+              notifications.showStudyStart(segmentDuration)
+              notifications.playSound('study')
+            }
+          }
         }
       }
     }
-  }, [currentTime, segments, lastSegmentType, onSegmentChange])
+  }, [currentTime, segments, lastSegmentType, onSegmentChange, timerState.isActive, timerState.isPaused])
 
-  // Timer logic
+  // Monitor timer completion
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
-
-    if (isActive && !isPaused && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((time) => {
-          if (time <= 1) {
-            onComplete()
-            return 0
-          }
-          return time - 1
-        })
-        
-        setCurrentTime((time) => time + 1)
-      }, 1000)
+    if (timerState.timeLeft === 0 && timerState.studyDuration > 0) {
+      // Show completion notification
+      notifications.showSessionComplete(timerState.studyDuration)
+      notifications.playSound('complete')
+      onComplete()
     }
+  }, [timerState.timeLeft, timerState.studyDuration, onComplete])
 
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [isActive, isPaused, timeLeft, onComplete])
-
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
 
   const getStatusMessage = () => {
-    if (isPaused) return 'Timer Paused'
+    if (timerState.isPaused) return 'Timer Paused'
     if (!currentSegment) return 'Ready to start'
     
     if (currentSegment.type === 'study') {
@@ -92,7 +87,7 @@ const IntegratedTimerDisplay = ({
   }
 
   const getStatusColor = () => {
-    if (isPaused) return 'text-warning'
+    if (timerState.isPaused) return 'text-warning'
     if (currentSegment?.type === 'break') return 'text-green-500'
     return 'text-primary'
   }
@@ -101,25 +96,25 @@ const IntegratedTimerDisplay = ({
     <div className="flex flex-col items-center space-y-8 animate-slide-in">
       {/* Pie Chart Timer */}
       <PieChartTimer
-        totalDuration={duration}
+        totalDuration={timerState.studyDuration}
         currentTime={currentTime}
-        isPaused={isPaused}
+        isPaused={timerState.isPaused}
         studySegments={segments}
       />
 
       {/* Status indicator */}
-      {isActive && (
+      {timerState.isActive && (
         <div className={`flex items-center space-x-3 text-lg font-medium animate-pulse-gentle ${getStatusColor()}`}>
-          <div className={`w-3 h-3 rounded-full bg-current ${isPaused ? 'animate-pulse' : 'animate-ping'}`} />
+          <div className={`w-3 h-3 rounded-full bg-current ${timerState.isPaused ? 'animate-pulse' : 'animate-ping'}`} />
           <span>{getStatusMessage()}</span>
         </div>
       )}
 
       {/* Session overview */}
       {segments.length > 0 && (
-        <div className="glass-effect rounded-xl p-6 max-w-md w-full">
-          <h3 className="text-lg font-semibold text-foreground mb-4 text-center">Session Overview</h3>
-          <div className="space-y-3">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 max-w-md w-full border border-white/20">
+          <h3 className="text-xl font-bold text-white mb-6 text-center">Session Overview</h3>
+          <div className="space-y-4">
             {segments.map((segment, index) => {
               const isCurrentSegment = currentSegment === segment
               const isPassed = currentTime >= segment.end * 60
@@ -127,37 +122,41 @@ const IntegratedTimerDisplay = ({
               return (
                 <div
                   key={index}
-                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 ${
+                  className={`flex items-center justify-between p-4 rounded-lg transition-all duration-300 border-2 min-h-[60px] ${
                     isCurrentSegment
                       ? segment.type === 'study' 
-                        ? 'bg-blue-100 border border-blue-300'
-                        : 'bg-green-100 border border-green-300'
+                        ? 'bg-blue-500/20 border-blue-400 shadow-lg shadow-blue-500/25'
+                        : 'bg-green-500/20 border-green-400 shadow-lg shadow-green-500/25'
                       : isPassed
-                      ? 'bg-gray-100 opacity-60'
-                      : 'bg-secondary/30'
+                      ? 'bg-gray-800/50 border-gray-600 opacity-70'
+                      : 'bg-white/5 border-white/30'
                   }`}
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-3 h-3 rounded-full ${
-                      segment.type === 'study' ? 'bg-blue-500' : 'bg-green-500'
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                      segment.type === 'study' 
+                        ? isCurrentSegment ? 'bg-blue-400 border-blue-300' : 'bg-blue-500 border-blue-400'
+                        : isCurrentSegment ? 'bg-green-400 border-green-300' : 'bg-green-500 border-green-400'
                     }`} />
-                    <span className={`font-medium ${
-                      isCurrentSegment ? 'text-foreground' : 'text-muted'
+                    <span className={`font-bold text-lg flex-shrink-0 ${
+                      isCurrentSegment ? 'text-white' : 'text-gray-100'
                     }`}>
                       {segment.type === 'study' ? 'Study' : 'Break'}
                     </span>
                   </div>
-                  <div className={`text-sm ${
-                    isCurrentSegment ? 'text-foreground font-medium' : 'text-muted'
-                  }`}>
-                    {segment.start}m - {segment.end}m
+                  <div className="flex items-center space-x-3 flex-shrink-0">
+                    <span className={`text-base font-medium ${
+                      isCurrentSegment ? 'text-white' : 'text-gray-200'
+                    }`}>
+                      {segment.start}m - {segment.end}m
+                    </span>
                     {isCurrentSegment && (
-                      <span className="ml-2 text-xs bg-current text-white px-2 py-1 rounded-full">
-                        Active
+                      <span className="text-xs bg-white/20 text-white px-3 py-1 rounded-full font-bold border border-white/30">
+                        ACTIVE
                       </span>
                     )}
                     {isPassed && (
-                      <span className="ml-2 text-xs text-green-600">✓</span>
+                      <span className="text-sm text-green-400 font-bold">✓</span>
                     )}
                   </div>
                 </div>

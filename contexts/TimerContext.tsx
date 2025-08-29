@@ -9,12 +9,12 @@ interface TimerState {
   studyDuration: number
   timeLeft: number
   startTime: number | null
-  selectedMethod: any
+  selectedMethod: unknown
 }
 
 interface TimerContextType {
   timerState: TimerState
-  startTimer: (duration: number, method: any) => void
+  startTimer: (duration: number, method: unknown) => void
   pauseTimer: () => void
   resumeTimer: () => void
   stopTimer: () => void
@@ -39,9 +39,12 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
 
   // Load timer state from localStorage on mount
   useEffect(() => {
-    const savedState = localStorage.getItem(TIMER_STORAGE_KEY)
-    if (savedState) {
-      try {
+    // Only access localStorage on client-side
+    if (typeof window === 'undefined') return
+    
+    try {
+      const savedState = localStorage.getItem(TIMER_STORAGE_KEY)
+      if (savedState) {
         const parsed = JSON.parse(savedState)
         
         // If there was an active timer, calculate current time
@@ -67,15 +70,20 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setTimerState(parsed)
         }
-      } catch (error) {
-        console.error('Error loading timer state:', error)
       }
+    } catch (error) {
+      console.error('Error loading timer state:', error)
     }
   }, [])
 
   // Save timer state to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(timerState))
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(timerState))
+    } catch (error) {
+      console.error('Error saving timer state:', error)
+    }
   }, [timerState])
 
   // Timer interval effect
@@ -110,7 +118,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [timerState.isActive, timerState.isPaused, timerState.timeLeft])
 
-  const startTimer = (duration: number, method: any) => {
+  const startTimer = (duration: number, method: unknown) => {
     const now = Date.now()
     setTimerState({
       isActive: true,
@@ -149,7 +157,9 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
       startTime: null,
       selectedMethod: null
     })
-    localStorage.removeItem(TIMER_STORAGE_KEY)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(TIMER_STORAGE_KEY)
+    }
   }
 
   const resetTimer = () => {

@@ -26,9 +26,6 @@ const Navigation = () => {
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="grid grid-cols-3 items-center">
           <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center text-white font-bold text-sm animate-pulse-gentle">
-              ST
-            </div>
             <h1 className="text-xl font-bold text-foreground">StudyTimer</h1>
           </Link>
           
@@ -67,7 +64,7 @@ const Navigation = () => {
                   timerState.isPaused ? 'bg-warning' : 'bg-primary animate-ping'
                 }`} />
                 <span className="text-sm font-medium">
-                  {Math.floor(timerState.timeLeft / 60)}:{(timerState.timeLeft % 60).toString().padStart(2, '0')}
+                  {Math.floor(Math.max(0, timerState.timeLeft) / 60)}:{(Math.max(0, timerState.timeLeft) % 60).toString().padStart(2, '0')}
                 </span>
                 <span className="text-xs">
                   {timerState.isPaused ? 'Paused' : 'Active'}
@@ -86,13 +83,6 @@ const Navigation = () => {
             </Link>
             
             <div className="flex items-center space-x-2">
-              {user?.user_metadata?.avatar_url && (
-                <img
-                  src={user.user_metadata.avatar_url}
-                  alt="Avatar"
-                  className="w-8 h-8 rounded-full border-2 border-primary"
-                />
-              )}
               <button
                 onClick={signOut}
                 className="text-muted hover:text-danger transition-all duration-200 hover:scale-110 px-2 py-1 rounded"

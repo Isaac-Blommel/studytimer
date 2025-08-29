@@ -96,12 +96,6 @@ const SettingsPage = () => {
                 <button className="w-full bg-primary hover:bg-primary-hover text-white py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left">
                   Connect Google Calendar
                 </button>
-                <button className="w-full bg-secondary hover:bg-border text-foreground py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left">
-                  Export Study Data
-                </button>
-                <button className="w-full bg-secondary hover:bg-border text-foreground py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left">
-                  Import Study Data
-                </button>
                 <button className="w-full bg-danger/20 hover:bg-danger/30 text-danger border border-danger/30 py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left">
                   Clear All Data
                 </button>

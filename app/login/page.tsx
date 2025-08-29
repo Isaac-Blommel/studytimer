@@ -11,10 +11,10 @@ const LoginPage = () => {
     setIsLoading(true)
     
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`,
+          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}` : 'http://localhost:3001',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -23,11 +23,9 @@ const LoginPage = () => {
       })
 
       if (error) {
-        console.error('Error signing in:', error.message)
         alert('Error signing in. Please try again.')
       }
-    } catch (error) {
-      console.error('Error:', error)
+    } catch {
       alert('Something went wrong. Please try again.')
     } finally {
       setIsLoading(false)
@@ -46,8 +44,8 @@ const LoginPage = () => {
 
         <div className="glass-effect rounded-2xl p-8 animate-bounce-in">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-foreground mb-2">Welcome Back!</h2>
-            <p className="text-muted">Sign in to track your study progress and compete on leaderboards</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Welcome!</h2>
+            <p className="text-muted">Sign in to track your study progress</p>
           </div>
 
           <div className="space-y-6">
@@ -100,13 +98,6 @@ const LoginPage = () => {
               <p className="text-sm text-muted">
                 By signing in, you agree to our terms of service and privacy policy
               </p>
-              <div className="flex items-center justify-center space-x-4 text-xs text-muted">
-                <span>Secure Authentication</span>
-                <span>•</span>
-                <span>Progress Tracking</span>
-                <span>•</span>
-                <span>Leaderboards</span>
-              </div>
             </div>
           </div>
         </div>

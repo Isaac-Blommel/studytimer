@@ -29,9 +29,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center text-white font-bold text-2xl animate-pulse-gentle mx-auto mb-4">
-            ST
-          </div>
           <div className="text-foreground font-semibold mb-2">StudyTimer</div>
           <div className="flex items-center justify-center space-x-1">
             <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
