@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Navigation from '../components/Navigation'
 import TimerMethodSelector from '../components/TimerMethodSelector'
 import DurationSelector from '../components/DurationSelector'
 import CustomTimerSetup from '../components/CustomTimerSetup'
-import TimerDisplay from '../components/TimerDisplay'
+import IntegratedTimerDisplay from '../components/IntegratedTimerDisplay'
 import SessionLogger from '../components/SessionLogger'
 import FocusBackground from '../components/FocusBackground'
 
@@ -29,7 +29,23 @@ export default function Home() {
   const [isPaused, setIsPaused] = useState(false)
   const [isBreak, setIsBreak] = useState(false)
   const [showLogger, setShowLogger] = useState(false)
-  const [sessions, setSessions] = useState<Array<{ duration: number, notes: string, timestamp: Date }>>([])
+  const [sessions, setSessions] = useState<Array<{ duration: number, studyTopic: string, notes: string, timestamp: Date }>>>([])
+
+  // Load sessions from localStorage on component mount
+  useEffect(() => {
+    const storedSessions = localStorage.getItem('study-sessions')
+    if (storedSessions) {
+      try {
+        const parsedSessions = JSON.parse(storedSessions).map((session: any) => ({
+          ...session,
+          timestamp: new Date(session.timestamp)
+        }))
+        setSessions(parsedSessions)
+      } catch (error) {
+        console.error('Error loading sessions:', error)
+      }
+    }
+  }, [])
 
   const handleMethodSelect = (method: TimerMethod) => {
     setSelectedMethod(method)
@@ -95,40 +111,38 @@ export default function Home() {
   }
 
   const handleTimerComplete = () => {
-    if (!isBreak) {
-      setShowLogger(true)
-      setIsTimerActive(false)
-    } else {
-      setIsBreak(false)
-      setIsTimerActive(false)
-      resetToStart()
-    }
+    // Session is complete - show the logger
+    setShowLogger(true)
+    setIsTimerActive(false)
+    setIsBreak(false)
   }
 
-  const handleSessionSave = (notes: string) => {
-    setSessions(prev => [...prev, {
+  const handleSessionSave = (data: { studyTopic: string; notes: string }) => {
+    const newSession = {
+      id: Date.now().toString(),
       duration: studyDuration,
-      notes,
-      timestamp: new Date()
-    }])
+      studyTopic: data.studyTopic,
+      notes: data.notes,
+      timestamp: new Date(),
+      method: selectedMethod === 'pomodoro' ? 'Pomodoro' : 'Custom Focus'
+    }
+    
+    setSessions(prev => {
+      const updatedSessions = [...prev, newSession]
+      // Save to localStorage
+      localStorage.setItem('study-sessions', JSON.stringify(updatedSessions))
+      return updatedSessions
+    })
+    
     setShowLogger(false)
-    startBreak()
+    resetToStart()
   }
 
   const handleSessionSkip = () => {
     setShowLogger(false)
-    startBreak()
+    resetToStart()
   }
 
-  const startBreak = () => {
-    if (breakDuration > 0) {
-      setIsBreak(true)
-      setIsTimerActive(true)
-      setIsPaused(false)
-    } else {
-      resetToStart()
-    }
-  }
 
   return (
     <div className="min-h-screen gradient-bg">
@@ -213,12 +227,12 @@ export default function Home() {
 
           {appState === 'timer-active' && (
             <div className="flex flex-col items-center space-y-8">
-              <TimerDisplay
-                duration={isBreak ? breakDuration : studyDuration}
+              <IntegratedTimerDisplay
+                duration={studyDuration}
                 isActive={isTimerActive}
                 isPaused={isPaused}
-                isBreak={isBreak}
                 onComplete={handleTimerComplete}
+                onSegmentChange={(segmentType) => setIsBreak(segmentType === 'break')}
               />
               
               <div className="flex space-x-4">

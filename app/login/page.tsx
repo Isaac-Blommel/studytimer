@@ -38,14 +38,9 @@ const LoginPage = () => {
     <div className="min-h-screen gradient-bg flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-12 animate-slide-in">
-          <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center text-white font-bold text-2xl animate-pulse-gentle">
-              ST
-            </div>
-            <h1 className="text-4xl font-bold text-foreground">StudyTimer</h1>
-          </div>
+          <h1 className="text-4xl font-bold text-foreground mb-6">Study Timer</h1>
           <p className="text-xl text-muted">
-            Focus better, study smarter
+            Welcome!
           </p>
         </div>
 
@@ -106,11 +101,11 @@ const LoginPage = () => {
                 By signing in, you agree to our terms of service and privacy policy
               </p>
               <div className="flex items-center justify-center space-x-4 text-xs text-muted">
-                <span>🔒 Secure Authentication</span>
+                <span>Secure Authentication</span>
                 <span>•</span>
-                <span>📊 Progress Tracking</span>
+                <span>Progress Tracking</span>
                 <span>•</span>
-                <span>🏆 Leaderboards</span>
+                <span>Leaderboards</span>
               </div>
             </div>
           </div>

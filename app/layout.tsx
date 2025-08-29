@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from '../contexts/AuthContext';
+import { TimerProvider } from '../contexts/TimerContext';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 export default function RootLayout({
@@ -31,11 +32,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
       >
         <AuthProvider>
-          <ProtectedRoute>
-            <div className="min-h-screen">
-              {children}
-            </div>
-          </ProtectedRoute>
+          <TimerProvider>
+            <ProtectedRoute>
+              <div className="min-h-screen">
+                {children}
+              </div>
+            </ProtectedRoute>
+          </TimerProvider>
         </AuthProvider>
       </body>
     </html>

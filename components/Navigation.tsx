@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
+import { useTimer } from '../contexts/TimerContext'
 
 const Navigation = () => {
   const pathname = usePathname()
   const { user, signOut } = useAuth()
+  const { timerState } = useTimer()
 
   // Don't show navigation on login page or if not authenticated
   if (pathname === '/login' || !user) {
@@ -50,6 +52,28 @@ const Navigation = () => {
           </div>
           
           <div className="flex justify-end items-center space-x-3">
+            {/* Timer Status Indicator */}
+            {timerState.isActive && (
+              <Link
+                href="/"
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 ${
+                  timerState.isPaused 
+                    ? 'bg-warning/20 text-warning hover:bg-warning/30'
+                    : 'bg-primary/20 text-primary hover:bg-primary/30 animate-pulse-gentle'
+                }`}
+                title="Click to return to timer"
+              >
+                <div className={`w-2 h-2 rounded-full ${
+                  timerState.isPaused ? 'bg-warning' : 'bg-primary animate-ping'
+                }`} />
+                <span className="text-sm font-medium">
+                  {Math.floor(timerState.timeLeft / 60)}:{(timerState.timeLeft % 60).toString().padStart(2, '0')}
+                </span>
+                <span className="text-xs">
+                  {timerState.isPaused ? 'Paused' : 'Active'}
+                </span>
+              </Link>
+            )}
             <Link
               href="/settings"
               className={`px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 button-glow ${

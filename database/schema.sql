@@ -24,7 +24,8 @@ CREATE TABLE public.study_sessions (
     duration INTEGER NOT NULL, -- in minutes
     break_duration INTEGER, -- in minutes
     method TEXT NOT NULL, -- 'pomodoro', 'fifty-ten', 'ninety-fifteen', 'two-thirty', 'custom'
-    notes TEXT,
+    study_topic TEXT, -- what the user studied (subject/topic)
+    notes TEXT, -- user's session notes and insights
     completed_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

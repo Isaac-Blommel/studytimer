@@ -6,6 +6,7 @@ import Navigation from '../../components/Navigation'
 interface Session {
   id: string
   duration: number
+  studyTopic: string
   notes: string
   timestamp: Date
   method: string
@@ -16,44 +17,19 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('overview')
 
   useEffect(() => {
-    const mockSessions: Session[] = [
-      {
-        id: '1',
-        duration: 25,
-        notes: 'Studied React hooks and state management. Learned about useEffect dependencies.',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        method: 'Pomodoro'
-      },
-      {
-        id: '2',
-        duration: 50,
-        notes: 'Deep dive into TypeScript generics and advanced type manipulation.',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        method: '50/10 Method'
-      },
-      {
-        id: '3',
-        duration: 90,
-        notes: 'Comprehensive study of database design principles and normalization.',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        method: '90/15 Method'
-      },
-      {
-        id: '4',
-        duration: 25,
-        notes: 'Algorithm practice - binary trees and traversal methods.',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        method: 'Pomodoro'
-      },
-      {
-        id: '5',
-        duration: 120,
-        notes: 'Machine learning fundamentals and linear regression implementation.',
-        timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-        method: '2 Hour Deep Work'
+    // Load real session data from localStorage
+    const storedSessions = localStorage.getItem('study-sessions')
+    if (storedSessions) {
+      try {
+        const parsedSessions = JSON.parse(storedSessions).map((session: any) => ({
+          ...session,
+          timestamp: new Date(session.timestamp)
+        }))
+        setSessions(parsedSessions)
+      } catch (error) {
+        console.error('Error loading sessions:', error)
       }
-    ]
-    setSessions(mockSessions)
+    }
   }, [])
 
   const totalStudyTime = sessions.reduce((acc, session) => acc + session.duration, 0)
@@ -193,8 +169,22 @@ const ProfilePage = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="bg-secondary/30 rounded-lg p-4">
-                        <p className="text-foreground text-center">{session.notes}</p>
+                      <div className="bg-secondary/30 rounded-lg p-4 space-y-3">
+                        {session.studyTopic && (
+                          <div>
+                            <h4 className="text-sm font-medium text-muted mb-1">Study Topic</h4>
+                            <p className="text-foreground">{session.studyTopic}</p>
+                          </div>
+                        )}
+                        {session.notes && (
+                          <div>
+                            <h4 className="text-sm font-medium text-muted mb-1">Notes</h4>
+                            <p className="text-foreground">{session.notes}</p>
+                          </div>
+                        )}
+                        {!session.studyTopic && !session.notes && (
+                          <p className="text-muted text-center italic">No notes recorded</p>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -243,8 +233,8 @@ const ProfilePage = () => {
               <div className="glass-effect rounded-xl p-8">
                 <h3 className="text-xl font-semibold text-foreground mb-6 text-center">Data Management</h3>
                 <div className="space-y-4">
-                  <button className="w-full bg-secondary hover:bg-border text-foreground py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left">
-                    Export Study Data
+                  <button className="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left">
+                    Connect Google Calendar
                   </button>
                   <button className="w-full bg-danger/20 hover:bg-danger/30 text-danger border border-danger/30 py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left">
                     Clear All Data

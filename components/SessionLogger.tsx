@@ -7,12 +7,13 @@ import AchievementBadge from './AchievementBadge'
 interface SessionLoggerProps {
   isVisible: boolean
   duration: number
-  onSave: (notes: string) => void
+  onSave: (data: { studyTopic: string; notes: string }) => void
   onSkip: () => void
 }
 
 const SessionLogger = ({ isVisible, duration, onSave, onSkip }: SessionLoggerProps) => {
   const [notes, setNotes] = useState('')
+  const [studyTopic, setStudyTopic] = useState('')
   const [displayedPrompt, setDisplayedPrompt] = useState('')
   const [showContent, setShowContent] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
@@ -75,14 +76,16 @@ const SessionLogger = ({ isVisible, duration, onSave, onSkip }: SessionLoggerPro
   }, [isVisible, prompt])
 
   const handleSave = () => {
-    onSave(notes)
+    onSave({ studyTopic, notes })
     setNotes('')
+    setStudyTopic('')
     setShowConfetti(false)
   }
 
   const handleSkip = () => {
     onSkip()
     setNotes('')
+    setStudyTopic('')
     setShowConfetti(false)
   }
 
@@ -137,17 +140,38 @@ const SessionLogger = ({ isVisible, duration, onSave, onSkip }: SessionLoggerPro
             </label>
             
             {showContent && (
-              <div className="animate-fade-in-up">
-                <div className="relative">
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="w-full h-32 bg-secondary/50 border-2 border-border rounded-xl px-4 py-3 text-foreground placeholder-muted resize-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 backdrop-blur-sm"
-                    placeholder="Share your insights, breakthroughs, or what you learned..."
-                    maxLength={500}
+              <div className="animate-fade-in-up space-y-4">
+                {/* Study Topic Field */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    What did you study?
+                  </label>
+                  <input
+                    type="text"
+                    value={studyTopic}
+                    onChange={(e) => setStudyTopic(e.target.value)}
+                    className="w-full bg-secondary/50 border-2 border-border rounded-xl px-4 py-3 text-foreground placeholder-muted focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 backdrop-blur-sm"
+                    placeholder="e.g., Mathematics, History, Programming..."
+                    maxLength={100}
                   />
-                  <div className="absolute bottom-2 right-3 text-xs text-muted">
-                    {notes.length}/500
+                </div>
+                
+                {/* Notes Field */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Session notes (optional)
+                  </label>
+                  <div className="relative">
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="w-full h-24 bg-secondary/50 border-2 border-border rounded-xl px-4 py-3 text-foreground placeholder-muted resize-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 backdrop-blur-sm"
+                      placeholder="Share your insights, breakthroughs, or what you learned..."
+                      maxLength={500}
+                    />
+                    <div className="absolute bottom-2 right-3 text-xs text-muted">
+                      {notes.length}/500
+                    </div>
                   </div>
                 </div>
               </div>

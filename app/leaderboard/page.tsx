@@ -182,74 +182,87 @@ const LeaderboardPage = () => {
           </div>
 
           {/* Podium Layout */}
-          <div className="glass-effect rounded-xl p-8 mb-8 animate-slide-in">
-            <h2 className="text-2xl font-bold text-center text-foreground mb-8">Top Performers</h2>
+          <div className="glass-effect rounded-xl p-6 mb-8 animate-slide-in">
+            <h2 className="text-xl font-semibold text-center text-foreground mb-6">Top Performers</h2>
             
             {/* Podium Container */}
-            <div className="flex items-end justify-center space-x-8 mb-8">
+            <div className="flex items-end justify-center space-x-6 mb-6">
               {/* 2nd Place - Left */}
               {topThree[1] && (
-                <div className="flex flex-col items-center transform transition-all duration-500 hover:scale-110 animate-bounce-in" style={{animationDelay: '0.2s'}}>
-                  <div className="mb-4">
-                    <MedalIcon rank={2} size="large" className="animate-glow-pulse" />
+                <div className="flex flex-col items-center transform transition-all duration-300 hover:scale-105" style={{animationDelay: '0.2s'}}>
+                  <div className="mb-6">
+                    <MedalIcon rank={2} size="large" className="w-20 h-20" />
                   </div>
-                  <div className="text-center mb-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-300 to-gray-500 flex items-center justify-center text-white font-bold text-xl mx-auto mb-2 shadow-lg">
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-300 to-slate-500 flex items-center justify-center text-white font-semibold text-base mx-auto mb-3 shadow-lg">
                       {topThree[1].avatar}
                     </div>
-                    <h3 className="font-bold text-foreground text-lg">{topThree[1].name}</h3>
-                    <p className="text-2xl font-bold text-accent">{formatTime(topThree[1].studyTime)}</p>
-                    <p className="text-sm text-muted">{topThree[1].sessions} sessions</p>
+                    <h3 className="font-semibold text-foreground text-base mb-1">{topThree[1].name}</h3>
+                    <div className="bg-slate-50 rounded-lg px-3 py-2 mb-2">
+                      <p className="text-xl font-bold text-slate-700">{formatTime(topThree[1].studyTime)}</p>
+                      <p className="text-xs text-slate-600">{topThree[1].sessions} sessions</p>
+                    </div>
                   </div>
                   {/* Silver Podium */}
-                  <div className="w-24 h-20 bg-gradient-to-t from-gray-400 to-gray-300 rounded-t-lg shadow-lg flex items-center justify-center">
-                    <span className="text-gray-700 font-bold text-3xl">2</span>
+                  <div className="w-18 h-16 bg-gradient-to-t from-slate-400 to-slate-300 rounded-lg shadow-lg flex items-center justify-center border-2 border-slate-300">
+                    <div className="text-center">
+                      <div className="text-white font-bold text-sm">2nd</div>
+                      <div className="text-slate-100 text-xs">PLACE</div>
+                    </div>
                   </div>
                 </div>
               )}
 
               {/* 1st Place - Center (Larger) */}
               {topThree[0] && (
-                <div className="flex flex-col items-center transform transition-all duration-500 hover:scale-110 animate-bounce-in" style={{animationDelay: '0.1s'}}>
-                  {/* Crown decoration */}
-                  <div className="text-6xl animate-bounce mb-2">👑</div>
-                  <div className="mb-4">
-                    <MedalIcon rank={1} size="large" className="animate-glow-pulse w-20 h-20" />
+                <div className="flex flex-col items-center transform transition-all duration-300 hover:scale-105" style={{animationDelay: '0.1s'}}>
+                  <div className="mb-6">
+                    <MedalIcon rank={1} size="large" className="w-24 h-24" />
                   </div>
-                  <div className="text-center mb-4">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3 shadow-xl border-4 border-yellow-300">
+                  <div className="text-center mb-6">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-lg mx-auto mb-3 shadow-lg">
                       {topThree[0].avatar}
                     </div>
-                    <h3 className="font-bold text-foreground text-xl">{topThree[0].name}</h3>
-                    <p className="text-3xl font-bold text-gradient bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-                      {formatTime(topThree[0].studyTime)}
-                    </p>
-                    <p className="text-muted">{topThree[0].sessions} sessions</p>
+                    <h3 className="font-semibold text-foreground text-lg mb-1">{topThree[0].name}</h3>
+                    <div className="bg-amber-50 rounded-lg px-4 py-2 mb-2">
+                      <p className="text-2xl font-bold text-amber-700">
+                        {formatTime(topThree[0].studyTime)}
+                      </p>
+                      <p className="text-sm text-amber-600">{topThree[0].sessions} sessions</p>
+                    </div>
                   </div>
-                  {/* Gold Podium */}
-                  <div className="w-28 h-28 bg-gradient-to-t from-yellow-600 to-yellow-400 rounded-t-lg shadow-xl flex items-center justify-center">
-                    <span className="text-yellow-800 font-bold text-4xl">1</span>
+                  {/* Professional Podium */}
+                  <div className="w-20 h-20 bg-gradient-to-t from-amber-600 to-amber-400 rounded-lg shadow-lg flex items-center justify-center border-2 border-amber-300">
+                    <div className="text-center">
+                      <div className="text-white font-bold text-lg">1st</div>
+                      <div className="text-amber-100 text-xs">PLACE</div>
+                    </div>
                   </div>
                 </div>
               )}
 
               {/* 3rd Place - Right */}
               {topThree[2] && (
-                <div className="flex flex-col items-center transform transition-all duration-500 hover:scale-110 animate-bounce-in" style={{animationDelay: '0.3s'}}>
-                  <div className="mb-4">
-                    <MedalIcon rank={3} size="large" className="animate-glow-pulse" />
+                <div className="flex flex-col items-center transform transition-all duration-300 hover:scale-105" style={{animationDelay: '0.3s'}}>
+                  <div className="mb-6">
+                    <MedalIcon rank={3} size="large" className="w-20 h-20" />
                   </div>
-                  <div className="text-center mb-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-white font-bold text-xl mx-auto mb-2 shadow-lg">
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold text-base mx-auto mb-3 shadow-lg">
                       {topThree[2].avatar}
                     </div>
-                    <h3 className="font-bold text-foreground text-lg">{topThree[2].name}</h3>
-                    <p className="text-2xl font-bold text-accent">{formatTime(topThree[2].studyTime)}</p>
-                    <p className="text-sm text-muted">{topThree[2].sessions} sessions</p>
+                    <h3 className="font-semibold text-foreground text-base mb-1">{topThree[2].name}</h3>
+                    <div className="bg-orange-50 rounded-lg px-3 py-2 mb-2">
+                      <p className="text-xl font-bold text-orange-700">{formatTime(topThree[2].studyTime)}</p>
+                      <p className="text-xs text-orange-600">{topThree[2].sessions} sessions</p>
+                    </div>
                   </div>
                   {/* Bronze Podium */}
-                  <div className="w-24 h-16 bg-gradient-to-t from-amber-800 to-amber-600 rounded-t-lg shadow-lg flex items-center justify-center">
-                    <span className="text-amber-900 font-bold text-3xl">3</span>
+                  <div className="w-18 h-14 bg-gradient-to-t from-orange-600 to-orange-400 rounded-lg shadow-lg flex items-center justify-center border-2 border-orange-300">
+                    <div className="text-center">
+                      <div className="text-white font-bold text-sm">3rd</div>
+                      <div className="text-orange-100 text-xs">PLACE</div>
+                    </div>
                   </div>
                 </div>
               )}
