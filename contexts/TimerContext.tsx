@@ -7,6 +7,8 @@ interface TimerState {
   isPaused: boolean
   isBreak: boolean
   studyDuration: number
+  breakDuration?: number
+  cycles?: number
   timeLeft: number
   startTime: number | null
   selectedMethod: unknown
@@ -14,7 +16,7 @@ interface TimerState {
 
 interface TimerContextType {
   timerState: TimerState
-  startTimer: (duration: number, method: unknown) => void
+  startTimer: (duration: number, method: unknown, breakDuration?: number, cycles?: number) => void
   pauseTimer: () => void
   resumeTimer: () => void
   stopTimer: () => void
@@ -32,6 +34,8 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     isPaused: false,
     isBreak: false,
     studyDuration: 0,
+    breakDuration: undefined,
+    cycles: undefined,
     timeLeft: 0,
     startTime: null,
     selectedMethod: null
@@ -47,6 +51,13 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
       if (savedState) {
         const parsed = JSON.parse(savedState)
         
+        // Validate parsed state structure
+        if (typeof parsed.isActive !== 'boolean' || typeof parsed.timeLeft !== 'number') {
+          console.warn('Invalid timer state format, resetting to default')
+          localStorage.removeItem(TIMER_STORAGE_KEY)
+          return
+        }
+        
         // If there was an active timer, calculate current time
         if (parsed.isActive && parsed.startTime && !parsed.isPaused) {
           const now = Date.now()
@@ -60,19 +71,39 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
               startTime: now - (elapsed * 1000)
             })
           } else {
-            // Timer completed while away
+            // Timer completed while away - reset to default state
             setTimerState({
-              ...parsed,
               isActive: false,
-              timeLeft: 0
+              isPaused: false,
+              isBreak: false,
+              studyDuration: 0,
+              breakDuration: undefined,
+              cycles: undefined,
+              timeLeft: 0,
+              startTime: null,
+              selectedMethod: null
             })
+            localStorage.removeItem(TIMER_STORAGE_KEY)
           }
         } else {
           setTimerState(parsed)
         }
       }
     } catch (error) {
-      console.error('Error loading timer state:', error)
+      console.error('Error loading timer state, resetting to default:', error)
+      // Clear corrupted state
+      localStorage.removeItem(TIMER_STORAGE_KEY)
+      setTimerState({
+        isActive: false,
+        isPaused: false,
+        isBreak: false,
+        studyDuration: 0,
+        breakDuration: undefined,
+        cycles: undefined,
+        timeLeft: 0,
+        startTime: null,
+        selectedMethod: null
+      })
     }
   }, [])
 
@@ -118,14 +149,26 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [timerState.isActive, timerState.isPaused, timerState.timeLeft])
 
-  const startTimer = (duration: number, method: unknown) => {
+  const startTimer = (duration: number, method: unknown, breakDuration?: number, cycles?: number) => {
     const now = Date.now()
+    // For custom timers with break duration and cycles, calculate total time
+    let totalDuration = duration
+    if (breakDuration !== undefined && cycles !== undefined && cycles > 1) {
+      // Multiple cycles: (work + break) × cycles - final break
+      totalDuration = (duration + breakDuration) * cycles - breakDuration
+    } else if (breakDuration !== undefined) {
+      // Single cycle: work + break
+      totalDuration = duration + breakDuration
+    }
+    
     setTimerState({
       isActive: true,
       isPaused: false,
       isBreak: false,
       studyDuration: duration,
-      timeLeft: duration * 60,
+      breakDuration,
+      cycles,
+      timeLeft: totalDuration * 60,
       startTime: now,
       selectedMethod: method
     })
@@ -153,6 +196,8 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
       isPaused: false,
       isBreak: false,
       studyDuration: 0,
+      breakDuration: undefined,
+      cycles: undefined,
       timeLeft: 0,
       startTime: null,
       selectedMethod: null

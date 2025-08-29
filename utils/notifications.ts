@@ -36,10 +36,11 @@ export class StudyNotifications {
       const stored = localStorage.getItem('notification-settings')
       if (stored) {
         const settings = JSON.parse(stored)
-        this.enabled = settings.enabled || false
+        this.enabled = Boolean(settings.enabled)
       }
     } catch (error) {
-      console.error('Error loading notification settings:', error)
+      console.error('Error loading notification settings, using defaults:', error)
+      this.enabled = false
     }
   }
 
@@ -170,13 +171,13 @@ export class StudyNotifications {
     
     try {
       // Check if AudioContext is available
-      if (!window.AudioContext && !(window as any).webkitAudioContext) {
+      if (!window.AudioContext && !(window as Window & {webkitAudioContext?: typeof AudioContext}).webkitAudioContext) {
         console.warn('AudioContext not supported')
         return
       }
       
       // Create audio context for different notification sounds
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+      const AudioContextClass = window.AudioContext || (window as Window & {webkitAudioContext?: typeof AudioContext}).webkitAudioContext
       const audioContext = new AudioContextClass()
       const oscillator = audioContext.createOscillator()
       const gainNode = audioContext.createGain()

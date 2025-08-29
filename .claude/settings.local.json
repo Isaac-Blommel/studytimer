@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
+      "Bash(npm run dev:*)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
+      "Bash(pkill:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)"
     ],
     "deny": [],
     "ask": []

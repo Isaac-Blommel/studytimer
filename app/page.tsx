@@ -1,13 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Navigation from '../components/Navigation'
 import TimerMethodSelector from '../components/TimerMethodSelector'
 import DurationSelector from '../components/DurationSelector'
 import CustomTimerSetup from '../components/CustomTimerSetup'
 import IntegratedTimerDisplay from '../components/IntegratedTimerDisplay'
-import SessionLogger from '../components/SessionLogger'
+import SimpleCompletion from '../components/SimpleCompletion'
 import FocusBackground from '../components/FocusBackground'
+import { useTimer } from '../contexts/TimerContext'
+import { useSession } from '../contexts/SessionContext'
 
 interface TimerMethod {
   id: string
@@ -15,11 +18,15 @@ interface TimerMethod {
   duration: number
   breakDuration: number
   description: string
+  cycles?: number
 }
 
 type AppState = 'method-selection' | 'duration-selection' | 'custom-setup' | 'timer-ready' | 'timer-active'
 
 export default function Home() {
+  const { timerState, startTimer: startTimerContext, pauseTimer: pauseTimerContext, stopTimer: stopTimerContext } = useTimer()
+  const { addSession } = useSession()
+  const searchParams = useSearchParams()
   const [appState, setAppState] = useState<AppState>('method-selection')
   const [selectedMethod, setSelectedMethod] = useState<TimerMethod | null>(null)
   const [studyDuration, setStudyDuration] = useState(0)
@@ -28,24 +35,42 @@ export default function Home() {
   const [isTimerActive, setIsTimerActive] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [isBreak, setIsBreak] = useState(false)
-  const [showLogger, setShowLogger] = useState(false)
-  const [sessions, setSessions] = useState<Array<{ duration: number, studyTopic: string, notes: string, timestamp: Date }>>>([])
 
-  // Load sessions from localStorage on component mount
+  // Sync local state with timer context
   useEffect(() => {
-    const storedSessions = localStorage.getItem('study-sessions')
-    if (storedSessions) {
-      try {
-        const parsedSessions = JSON.parse(storedSessions).map((session: any) => ({
-          ...session,
-          timestamp: new Date(session.timestamp)
-        }))
-        setSessions(parsedSessions)
-      } catch (error) {
-        console.error('Error loading sessions:', error)
-      }
+    if (timerState.isActive) {
+      setIsTimerActive(true)
+      setIsPaused(timerState.isPaused)
+      setStudyDuration(timerState.studyDuration)
+      setAppState('timer-active')
+    } else {
+      setIsTimerActive(false)
+      setIsPaused(false)
     }
-  }, [])
+  }, [timerState.isActive, timerState.isPaused, timerState.studyDuration])
+
+  const resetToStart = () => {
+    setAppState('method-selection')
+    setSelectedMethod(null)
+    setStudyDuration(0)
+    setBreakDuration(0)
+  }
+
+  // Handle reset from navigation logo click
+  useEffect(() => {
+    const resetParam = searchParams.get('reset')
+    if (resetParam === 'true') {
+      setAppState('method-selection')
+      setSelectedMethod(null)
+      setStudyDuration(0)
+      setBreakDuration(0)
+      stopTimerContext()
+      // Clear the URL parameter without causing a page reload
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [searchParams])
+
+  const [showCompletion, setShowCompletion] = useState(false)
 
   const handleMethodSelect = (method: TimerMethod) => {
     setSelectedMethod(method)
@@ -65,9 +90,20 @@ export default function Home() {
     setAppState('timer-ready')
   }
 
-  const handleCustomSetup = (workDuration: number, breakTime: number) => {
+  const handleCustomSetup = (workDuration: number, breakTime: number, cycles?: number) => {
     setStudyDuration(workDuration)
     setBreakDuration(breakTime)
+    // Store cycles info in selectedMethod for later reference
+    if (cycles && cycles > 1) {
+      setSelectedMethod({ 
+        id: 'custom', 
+        name: `Custom (${cycles} cycles)`, 
+        duration: workDuration, 
+        breakDuration: breakTime, 
+        description: `${workDuration}min work, ${breakTime}min break × ${cycles} cycles`,
+        cycles
+      })
+    }
     setAppState('timer-ready')
   }
 
@@ -87,59 +123,60 @@ export default function Home() {
   }
 
   const startTimer = () => {
+    const isCustom = selectedMethod?.id === 'custom'
+    const customBreakDuration = isCustom ? breakDuration : undefined
+    const cycles = isCustom && selectedMethod?.cycles ? selectedMethod.cycles : undefined
+    
+    startTimerContext(studyDuration, selectedMethod, customBreakDuration, cycles)
     setIsTimerActive(true)
     setIsPaused(false)
     setAppState('timer-active')
   }
 
   const pauseTimer = () => {
+    pauseTimerContext()
     setIsPaused(!isPaused)
   }
 
   const stopTimer = () => {
+    stopTimerContext()
     setIsTimerActive(false)
     setIsPaused(false)
-    setIsBreak(false)
     resetToStart()
   }
 
-  const resetToStart = () => {
-    setAppState('method-selection')
-    setSelectedMethod(null)
-    setStudyDuration(0)
-    setBreakDuration(0)
-  }
+  const handleTimerComplete = async () => {
+    // Session is complete - automatically save and show completion
+    try {
+      // Calculate total duration for multi-cycle sessions
+      const totalDuration = selectedMethod?.cycles && selectedMethod.cycles > 1
+        ? (studyDuration + breakDuration) * selectedMethod.cycles - breakDuration
+        : selectedMethod?.id === 'custom' && breakDuration > 0
+        ? studyDuration + breakDuration
+        : studyDuration
 
-  const handleTimerComplete = () => {
-    // Session is complete - show the logger
-    setShowLogger(true)
-    setIsTimerActive(false)
-    setIsBreak(false)
-  }
-
-  const handleSessionSave = (data: { studyTopic: string; notes: string }) => {
-    const newSession = {
-      id: Date.now().toString(),
-      duration: studyDuration,
-      studyTopic: data.studyTopic,
-      notes: data.notes,
-      timestamp: new Date(),
-      method: selectedMethod === 'pomodoro' ? 'Pomodoro' : 'Custom Focus'
+      await addSession({
+        duration: studyDuration,
+        studyTopic: '',
+        notes: '',
+        method: selectedMethod?.name || 'Study Session',
+        breakDuration: selectedMethod?.id === 'custom' ? breakDuration : undefined,
+        cycles: selectedMethod?.cycles,
+        totalDuration
+      })
+      
+      setShowCompletion(true)
+      setIsTimerActive(false)
+    } catch (error) {
+      console.error('Failed to save session:', error)
+      // Still show completion even if save fails
+      setShowCompletion(true)
+      setIsTimerActive(false)
     }
-    
-    setSessions(prev => {
-      const updatedSessions = [...prev, newSession]
-      // Save to localStorage
-      localStorage.setItem('study-sessions', JSON.stringify(updatedSessions))
-      return updatedSessions
-    })
-    
-    setShowLogger(false)
-    resetToStart()
   }
 
-  const handleSessionSkip = () => {
-    setShowLogger(false)
+  const handleCompletionFinish = () => {
+    setShowCompletion(false)
     resetToStart()
   }
 
@@ -254,11 +291,16 @@ export default function Home() {
         </div>
       </main>
 
-      <SessionLogger
-        isVisible={showLogger}
-        duration={studyDuration}
-        onSave={handleSessionSave}
-        onSkip={handleSessionSkip}
+      <SimpleCompletion
+        isVisible={showCompletion}
+        duration={selectedMethod?.cycles && selectedMethod.cycles > 1
+          ? (studyDuration + breakDuration) * selectedMethod.cycles - breakDuration
+          : selectedMethod?.id === 'custom' && breakDuration > 0
+          ? studyDuration + breakDuration
+          : studyDuration
+        }
+        studyMethod={selectedMethod?.name || 'Study Session'}
+        onComplete={handleCompletionFinish}
       />
     </div>
   )

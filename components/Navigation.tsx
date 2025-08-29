@@ -25,7 +25,7 @@ const Navigation = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 glass-effect animate-slide-in">
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="grid grid-cols-3 items-center">
-          <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+          <Link href="/?reset=true" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <h1 className="text-xl font-bold text-foreground">StudyTimer</h1>
           </Link>
           

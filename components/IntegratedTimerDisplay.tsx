@@ -24,15 +24,25 @@ const IntegratedTimerDisplay = ({
   const [lastSegmentType, setLastSegmentType] = useState<'study' | 'break' | null>(null)
   
   // Calculate current time from timer context
-  const currentTime = (timerState.studyDuration * 60) - timerState.timeLeft
+  const totalDuration = (() => {
+    if (timerState.breakDuration !== undefined && timerState.cycles !== undefined && timerState.cycles > 1) {
+      // Multiple cycles: (work + break) × cycles - final break
+      return (timerState.studyDuration + timerState.breakDuration) * timerState.cycles - timerState.breakDuration
+    } else if (timerState.breakDuration !== undefined) {
+      // Single cycle: work + break
+      return timerState.studyDuration + timerState.breakDuration
+    }
+    return timerState.studyDuration
+  })()
+  const currentTime = (totalDuration * 60) - timerState.timeLeft
 
   // Initialize segments when timer context duration changes
   useEffect(() => {
     if (timerState.studyDuration > 0) {
-      const newSegments = calculateStudySegments(timerState.studyDuration)
+      const newSegments = calculateStudySegments(timerState.studyDuration, timerState.breakDuration, timerState.cycles)
       setSegments(newSegments)
     }
-  }, [timerState.studyDuration])
+  }, [timerState.studyDuration, timerState.breakDuration, timerState.cycles])
 
   // Update current segment based on elapsed time
   useEffect(() => {
@@ -66,13 +76,13 @@ const IntegratedTimerDisplay = ({
 
   // Monitor timer completion
   useEffect(() => {
-    if (timerState.timeLeft === 0 && timerState.studyDuration > 0) {
+    if (timerState.timeLeft === 0 && totalDuration > 0) {
       // Show completion notification
-      notifications.showSessionComplete(timerState.studyDuration)
+      notifications.showSessionComplete(totalDuration)
       notifications.playSound('complete')
       onComplete()
     }
-  }, [timerState.timeLeft, timerState.studyDuration, onComplete])
+  }, [timerState.timeLeft, totalDuration, onComplete])
 
 
   const getStatusMessage = () => {
@@ -96,7 +106,7 @@ const IntegratedTimerDisplay = ({
     <div className="flex flex-col items-center space-y-8 animate-slide-in">
       {/* Pie Chart Timer */}
       <PieChartTimer
-        totalDuration={timerState.studyDuration}
+        totalDuration={totalDuration}
         currentTime={currentTime}
         isPaused={timerState.isPaused}
         studySegments={segments}

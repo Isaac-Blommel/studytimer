@@ -10,10 +10,42 @@ export interface StudySegment {
  * - 25min study, 5min break (Pomodoro)
  * - 50min study, 10min break (Ultradian rhythm)
  * - 90min study, 15min break (Deep work)
+ * - Custom work/break durations
  */
-export function calculateStudySegments(totalMinutes: number): StudySegment[] {
+export function calculateStudySegments(totalMinutes: number, customBreakDuration?: number, cycles?: number): StudySegment[] {
   const segments: StudySegment[] = []
   let currentTime = 0
+
+  // Handle custom work/break pattern
+  if (customBreakDuration !== undefined) {
+    // For custom timers, create work-break pattern that repeats
+    const workDuration = totalMinutes
+    const breakTime = customBreakDuration
+    const numCycles = cycles || 1
+    
+    // Create multiple cycles of work-break patterns
+    for (let cycle = 0; cycle < numCycles; cycle++) {
+      // Add work session
+      segments.push({ 
+        start: currentTime, 
+        end: currentTime + workDuration, 
+        type: 'study' 
+      })
+      currentTime += workDuration
+      
+      // Add break session (except for the last cycle if break time > 0)
+      if (breakTime > 0 && (cycle < numCycles - 1 || numCycles === 1)) {
+        segments.push({ 
+          start: currentTime, 
+          end: currentTime + breakTime, 
+          type: 'break' 
+        })
+        currentTime += breakTime
+      }
+    }
+    
+    return segments
+  }
 
   if (totalMinutes <= 30) {
     // Short sessions: mostly study with minimal break

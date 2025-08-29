@@ -1,47 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Navigation from '../../components/Navigation'
-
-interface Session {
-  id: string
-  duration: number
-  studyTopic: string
-  notes: string
-  timestamp: Date
-  method: string
-}
+import { useSession } from '../../contexts/SessionContext'
 
 const ProfilePage = () => {
-  const [sessions, setSessions] = useState<Session[]>([])
+  const { sessions, sessionStats, loading, error } = useSession()
   const [activeTab, setActiveTab] = useState('overview')
 
-  useEffect(() => {
-    // Load real session data from localStorage
-    const storedSessions = localStorage.getItem('study-sessions')
-    if (storedSessions) {
-      try {
-        const parsedSessions = JSON.parse(storedSessions).map((session: any) => ({
-          ...session,
-          timestamp: new Date(session.timestamp)
-        }))
-        setSessions(parsedSessions)
-      } catch (error) {
-        console.error('Error loading sessions:', error)
-      }
-    }
-  }, [])
-
-  const totalStudyTime = sessions.reduce((acc, session) => acc + session.duration, 0)
-  const totalSessions = sessions.length
-  const averageSessionLength = totalSessions > 0 ? Math.round(totalStudyTime / totalSessions) : 0
-
-  const thisWeekSessions = sessions.filter(session => {
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-    return session.timestamp > weekAgo
-  })
-
-  const thisWeekTime = thisWeekSessions.reduce((acc, session) => acc + session.duration, 0)
+  // Use pre-calculated stats from context
+  const { totalStudyTime, totalSessions, averageSessionLength, thisWeekTime } = sessionStats
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -63,6 +31,33 @@ const ProfilePage = () => {
     { id: 'history', label: 'Study History' },
     { id: 'settings', label: 'Settings' }
   ]
+
+  if (loading) {
+    return (
+      <div className="min-h-screen gradient-bg">
+        <Navigation />
+        <main className="pt-24 pb-12 px-4">
+          <div className="max-w-6xl mx-auto text-center">
+            <div className="text-xl text-muted">Loading your study data...</div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen gradient-bg">
+        <Navigation />
+        <main className="pt-24 pb-12 px-4">
+          <div className="max-w-6xl mx-auto text-center">
+            <div className="text-xl text-danger mb-4">Failed to load study data</div>
+            <div className="text-muted">{error}</div>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen gradient-bg">
