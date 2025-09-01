@@ -47,6 +47,11 @@ export type Database = {
           break_duration?: number
           method: string
           notes?: string
+          study_topic?: string
+          cycles?: number
+          total_duration?: number
+          completion_status?: string
+          method_variation?: string
           completed_at: string
           created_at: string
         }
@@ -57,6 +62,11 @@ export type Database = {
           break_duration?: number
           method: string
           notes?: string
+          study_topic?: string
+          cycles?: number
+          total_duration?: number
+          completion_status?: string
+          method_variation?: string
           completed_at?: string
           created_at?: string
         }
@@ -67,6 +77,11 @@ export type Database = {
           break_duration?: number
           method?: string
           notes?: string
+          study_topic?: string
+          cycles?: number
+          total_duration?: number
+          completion_status?: string
+          method_variation?: string
           completed_at?: string
           created_at?: string
         }

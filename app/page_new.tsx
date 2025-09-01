@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
 import Navigation from '../components/Navigation'
 import TimerMethodSelector from '../components/TimerMethodSelector'
 import DurationSelector from '../components/DurationSelector'
@@ -9,10 +8,7 @@ import CustomTimerSetup from '../components/CustomTimerSetup'
 import SessionNotesModal from '../components/SessionNotesModal'
 import SimpleCompletion from '../components/SimpleCompletion'
 import FocusBackground from '../components/FocusBackground'
-import IntegratedTimerDisplay from '../components/IntegratedTimerDisplay'
 import { useSession } from '../contexts/SessionContext'
-import { useTimer } from '../contexts/TimerContext'
-import { useSettings } from '../contexts/SettingsContext'
 
 interface TimerMethod {
   id: string
@@ -37,9 +33,6 @@ interface SessionData {
 
 export default function Home() {
   const { addSession } = useSession()
-  const { timerState, startTimer: startTimerContext, pauseTimer: pauseTimerContext, stopTimer: stopTimerContext } = useTimer()
-  const { settings } = useSettings()
-  const searchParams = useSearchParams()
   
   // App state
   const [appState, setAppState] = useState<AppState>('method-selection')
@@ -48,6 +41,12 @@ export default function Home() {
   const [selectedMethod, setSelectedMethod] = useState<TimerMethod | null>(null)
   const [studyDuration, setStudyDuration] = useState(0)
   const [breakDuration, setBreakDuration] = useState(0)
+  
+  // Timer state
+  const [timeLeft, setTimeLeft] = useState(0)
+  const [isRunning, setIsRunning] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [sessionStartTime, setSessionStartTime] = useState(0)
   
   // Session data for notes modal
   const [currentSessionData, setCurrentSessionData] = useState<SessionData | null>(null)
@@ -58,29 +57,27 @@ export default function Home() {
   // Test button state
   const [isTestingSave, setIsTestingSave] = useState(false)
 
-  const handleCompletionFinish = () => {
-    // Reset everything and go back to method selection
-    setShowCompletion(false)
-    setCurrentSessionData(null)
-    setSelectedMethod(null)
-    setStudyDuration(0)
-    setBreakDuration(0)
-    setAppState('method-selection')
-    // Also reset timer context
-    stopTimerContext()
-  }
-
-  // Handle reset from navigation logo click
+  // Timer countdown effect
   useEffect(() => {
-    const resetParam = searchParams.get('reset')
-    if (resetParam === 'true') {
-      handleCompletionFinish() // Reset everything
-      stopTimerContext() // Also stop the context timer
-      // Clear the URL parameter without causing a page reload
-      window.history.replaceState({}, '', window.location.pathname)
-    }
-  }, [searchParams])
+    let interval: NodeJS.Timeout | null = null
 
+    if (isRunning && !isPaused && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            // Timer completed naturally
+            handleTimerComplete()
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    }
+
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [isRunning, isPaused, timeLeft])
 
   // Method selection handlers
   const handleMethodSelect = (method: TimerMethod) => {
@@ -109,9 +106,9 @@ export default function Home() {
   }
 
   const handleCustomSetup = (workDuration: number, breakTime: number, cycles?: number) => {
-    console.log('🎛️ CUSTOM SETUP:', { workDuration, breakTime, cycles })
+    setStudyDuration(workDuration)
+    setBreakDuration(breakTime)
     
-    // Create method object with all the data BEFORE starting timer
     const method = {
       id: 'custom',
       name: cycles && cycles > 1 ? `Custom (${cycles} cycles)` : 'Custom Timer',
@@ -121,13 +118,8 @@ export default function Home() {
       cycles
     }
     
-    // Set state (this happens async)
-    setStudyDuration(workDuration)
-    setBreakDuration(breakTime)
     setSelectedMethod(method)
-    
-    // Start timer with direct values, not state
-    startTimerWithValues(workDuration, breakTime, method, cycles)
+    startTimer(workDuration)
   }
 
   const calculateBreakDuration = (methodId: string, duration: number) => {
@@ -148,71 +140,48 @@ export default function Home() {
   // Timer control functions
   const startTimer = (duration: number) => {
     console.log('🚀 Starting timer for', duration, 'minutes')
+    setTimeLeft(duration * 60) // Convert to seconds
+    setIsRunning(true)
+    setIsPaused(false)
+    setSessionStartTime(Date.now())
     setAppState('timer-running')
-    
-    // Start timer context with all the proper cycling logic
-    const method = {
-      id: selectedMethod?.id || 'custom',
-      name: selectedMethod?.name || 'Study Session',
-      cycles: selectedMethod?.cycles
-    }
-    startTimerContext(duration, method, breakDuration, selectedMethod?.cycles)
-  }
-
-  // New function that takes direct values instead of relying on state
-  const startTimerWithValues = (duration: number, breakTime: number, method: TimerMethod, cycles?: number) => {
-    console.log('🚀 Starting timer with direct values:', { duration, breakTime, cycles })
-    setAppState('timer-running')
-    
-    // Start timer context with direct values
-    const methodObj = {
-      id: method.id,
-      name: method.name,
-      cycles: cycles
-    }
-    startTimerContext(duration, methodObj, breakTime, cycles)
   }
 
   const pauseTimer = () => {
     console.log('⏸️ Pausing timer')
-    pauseTimerContext()
+    setIsPaused(!isPaused)
   }
 
   const stopTimer = () => {
     console.log('🛑 Stopping timer manually')
-    stopTimerContext()
     handleSessionEnd('manual_stop')
   }
 
   const handleTimerComplete = () => {
     console.log('✅ Timer completed naturally')
+    setIsRunning(false)
     handleSessionEnd('completed')
   }
 
   const handleSessionEnd = (completionType: 'completed' | 'manual_stop') => {
     console.log('🎯 Session ending:', completionType)
     
-    // Calculate actual duration from timer context
-    const totalDuration = (() => {
-      if (timerState.breakDuration !== undefined && timerState.cycles !== undefined && timerState.cycles > 1) {
-        return (timerState.studyDuration + timerState.breakDuration) * timerState.cycles - timerState.breakDuration
-      } else if (timerState.breakDuration !== undefined) {
-        return timerState.studyDuration + timerState.breakDuration
-      }
-      return timerState.studyDuration
-    })()
+    // Stop timer
+    setIsRunning(false)
+    setIsPaused(false)
     
-    const totalDurationSeconds = totalDuration * 60
-    const actualDurationSeconds = totalDurationSeconds - timerState.timeLeft
+    // Calculate actual duration (how much time was used)
+    const totalDurationSeconds = studyDuration * 60
+    const actualDurationSeconds = totalDurationSeconds - timeLeft
     const actualDurationMinutes = Math.max(1, Math.round(actualDurationSeconds / 60)) // Minimum 1 minute
     
     // Create session data
     const sessionData: SessionData = {
       method: selectedMethod?.name || 'Study Session',
       duration: actualDurationMinutes,
-      breakDuration: timerState.breakDuration || 0,
-      cycles: timerState.cycles || 1,
-      startTime: timerState.startTime || Date.now(),
+      breakDuration: breakDuration || 0,
+      cycles: selectedMethod?.cycles || 1,
+      startTime: sessionStartTime,
       endTime: Date.now(),
       completionType
     }
@@ -268,6 +237,17 @@ export default function Home() {
     await handleSaveStudyNotes('', '')
   }
 
+  const handleCompletionFinish = () => {
+    // Reset everything and go back to method selection
+    setShowCompletion(false)
+    setCurrentSessionData(null)
+    setSelectedMethod(null)
+    setStudyDuration(0)
+    setBreakDuration(0)
+    setTimeLeft(0)
+    setAppState('method-selection')
+  }
+
   // Test button function (same as before)
   const handleTestSaveSession = async () => {
     setIsTestingSave(true)
@@ -297,6 +277,12 @@ export default function Home() {
     }
   }
 
+  // Format time for display
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
 
   return (
     <div className="min-h-screen gradient-bg">
@@ -380,36 +366,24 @@ export default function Home() {
           {/* Timer Running */}
           {appState === 'timer-running' && (
             <div className="flex flex-col items-center space-y-8">
-              <div className="text-center mb-4">
-                <h2 className="text-2xl font-semibold text-foreground mb-2">
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold text-foreground mb-4">
                   {selectedMethod?.name} Session
                 </h2>
-                <div className="text-muted text-sm">
-                  {selectedMethod?.cycles && selectedMethod.cycles > 1 && (
-                    `${selectedMethod.cycles} cycles: ${studyDuration}min work + ${breakDuration}min break`
-                  )}
-                  {(!selectedMethod?.cycles || selectedMethod.cycles <= 1) && (
-                    `${studyDuration}min work + ${breakDuration}min break`
-                  )}
+                <div className="text-6xl font-bold text-primary mb-4">
+                  {formatTime(timeLeft)}
+                </div>
+                <div className="text-muted">
+                  {isPaused ? '⏸️ Paused' : '🎯 Focus Time'}
                 </div>
               </div>
-              
-              <IntegratedTimerDisplay
-                duration={studyDuration}
-                isActive={timerState.isActive}
-                isPaused={timerState.isPaused}
-                onComplete={handleTimerComplete}
-                onSegmentChange={(segmentType) => {
-                  console.log(`🔄 Segment changed to: ${segmentType}`)
-                }}
-              />
               
               <div className="flex space-x-4">
                 <button
                   onClick={pauseTimer}
                   className="bg-warning hover:bg-warning/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
                 >
-                  {timerState.isPaused ? 'Resume' : 'Pause'}
+                  {isPaused ? 'Resume' : 'Pause'}
                 </button>
                 <button
                   onClick={stopTimer}

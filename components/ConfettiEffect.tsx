@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { CONFETTI_CONFIG } from '../constants/effects'
+import { ParticleData } from '../types/components'
 
 interface ConfettiEffectProps {
   isActive: boolean
@@ -8,17 +10,8 @@ interface ConfettiEffectProps {
   onComplete?: () => void
 }
 
-const ConfettiEffect = ({ isActive, duration = 3000, onComplete }: ConfettiEffectProps) => {
-  const [particles, setParticles] = useState<Array<{
-    id: number
-    x: number
-    y: number
-    color: string
-    rotation: number
-    scale: number
-    velocity: { x: number; y: number }
-    shape: 'square' | 'circle' | 'triangle'
-  }>>([])
+const ConfettiEffect = ({ isActive, duration = CONFETTI_CONFIG.DEFAULT_DURATION, onComplete }: ConfettiEffectProps) => {
+  const [particles, setParticles] = useState<ParticleData[]>([])
 
   useEffect(() => {
     if (!isActive) {
@@ -26,10 +19,10 @@ const ConfettiEffect = ({ isActive, duration = 3000, onComplete }: ConfettiEffec
       return
     }
 
-    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
-    const shapes: Array<'square' | 'circle' | 'triangle'> = ['square', 'circle', 'triangle']
+    const colors = CONFETTI_CONFIG.COLORS
+    const shapes = CONFETTI_CONFIG.SHAPES
     
-    const newParticles = Array.from({ length: 50 }, (_, i) => ({
+    const newParticles = Array.from({ length: CONFETTI_CONFIG.PARTICLE_COUNT }, (_, i) => ({
       id: i,
       x: Math.random() * window.innerWidth,
       y: -10,

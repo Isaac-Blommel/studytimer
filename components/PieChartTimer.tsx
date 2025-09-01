@@ -1,12 +1,10 @@
 'use client'
 
-import React from 'react'
 
 interface PieChartTimerProps {
   totalDuration: number // in minutes
   currentTime: number // in seconds
   isPaused: boolean
-  studySegments: Array<{ start: number; end: number; type: 'study' | 'break' }>
 }
 
 const PieChartTimer = ({ totalDuration, currentTime, isPaused }: PieChartTimerProps) => {

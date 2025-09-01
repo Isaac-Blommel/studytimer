@@ -12,7 +12,7 @@ const AchievementBadge = ({ type, value, isUnlocked, className = '' }: Achieveme
     switch (type) {
       case 'streak':
         return {
-          icon: '🔥',
+          icon: 'STREAK',
           title: `${value} Day Streak`,
           description: `Studied for ${value} consecutive days`,
           color: 'from-orange-400 to-red-500',
@@ -20,7 +20,7 @@ const AchievementBadge = ({ type, value, isUnlocked, className = '' }: Achieveme
         }
       case 'time':
         return {
-          icon: '⏰',
+          icon: 'TIME',
           title: `${value} Hour Club`,
           description: `Completed ${value} hours of focused study`,
           color: 'from-blue-400 to-blue-600',
@@ -28,7 +28,7 @@ const AchievementBadge = ({ type, value, isUnlocked, className = '' }: Achieveme
         }
       case 'sessions':
         return {
-          icon: '📚',
+          icon: 'STUDY',
           title: `${value} Sessions`,
           description: `Completed ${value} study sessions`,
           color: 'from-green-400 to-green-600',
@@ -36,7 +36,7 @@ const AchievementBadge = ({ type, value, isUnlocked, className = '' }: Achieveme
         }
       case 'milestone':
         return {
-          icon: '🏆',
+          icon: 'GOAL',
           title: `Milestone ${value}`,
           description: `Achieved major study milestone`,
           color: 'from-yellow-400 to-yellow-600',
@@ -44,7 +44,7 @@ const AchievementBadge = ({ type, value, isUnlocked, className = '' }: Achieveme
         }
       default:
         return {
-          icon: '⭐',
+          icon: '*',
           title: 'Achievement',
           description: 'Special accomplishment',
           color: 'from-purple-400 to-purple-600',
@@ -67,7 +67,7 @@ const AchievementBadge = ({ type, value, isUnlocked, className = '' }: Achieveme
           }
         `}
       >
-        <span className={isUnlocked ? 'animate-bounce' : ''}>{config.icon}</span>
+        <span className={`text-xs font-bold ${isUnlocked ? 'animate-bounce' : ''}`}>{config.icon}</span>
       </div>
       
       {/* Glow effect for unlocked badges */}
@@ -88,9 +88,9 @@ const AchievementBadge = ({ type, value, isUnlocked, className = '' }: Achieveme
       {/* Sparkle animation for newly unlocked */}
       {isUnlocked && (
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-1 -right-1 text-yellow-400 text-xs animate-ping">✨</div>
-          <div className="absolute -bottom-1 -left-1 text-yellow-400 text-xs animate-ping" style={{animationDelay: '0.5s'}}>✨</div>
-          <div className="absolute -top-1 -left-1 text-yellow-400 text-xs animate-ping" style={{animationDelay: '1s'}}>✨</div>
+          <div className="absolute -top-1 -right-1 text-yellow-400 text-xs animate-ping">+</div>
+          <div className="absolute -bottom-1 -left-1 text-yellow-400 text-xs animate-ping" style={{animationDelay: '0.5s'}}>+</div>
+          <div className="absolute -top-1 -left-1 text-yellow-400 text-xs animate-ping" style={{animationDelay: '1s'}}>+</div>
         </div>
       )}
     </div>

@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useAuth } from '../contexts/AuthContext'
 import { useTimer } from '../contexts/TimerContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const Navigation = () => {
   const pathname = usePathname()
@@ -56,18 +56,28 @@ const Navigation = () => {
                 className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 ${
                   timerState.isPaused 
                     ? 'bg-warning/20 text-warning hover:bg-warning/30'
+                    : timerState.currentSegmentType === 'break'
+                    ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 animate-pulse-gentle'
                     : 'bg-primary/20 text-primary hover:bg-primary/30 animate-pulse-gentle'
                 }`}
-                title="Click to return to timer"
+                title={`Click to return to timer • ${timerState.isPaused ? 'Paused' : timerState.currentSegmentType === 'break' ? 'Break Time (Green)' : 'Study Time (Blue)'}`}
               >
                 <div className={`w-2 h-2 rounded-full ${
-                  timerState.isPaused ? 'bg-warning' : 'bg-primary animate-ping'
+                  timerState.isPaused 
+                    ? 'bg-warning' 
+                    : timerState.currentSegmentType === 'break'
+                    ? 'bg-green-400 animate-ping'
+                    : 'bg-primary animate-ping'
                 }`} />
                 <span className="text-sm font-medium">
                   {Math.floor(Math.max(0, timerState.timeLeft) / 60)}:{(Math.max(0, timerState.timeLeft) % 60).toString().padStart(2, '0')}
                 </span>
                 <span className="text-xs">
-                  {timerState.isPaused ? 'Paused' : 'Active'}
+                  {(() => {
+                    if (timerState.isPaused) return 'Paused'
+                    if (timerState.currentSegmentType === 'break' || timerState.isBreak) return 'Break'
+                    return 'Study'
+                  })()}
                 </span>
               </Link>
             )}

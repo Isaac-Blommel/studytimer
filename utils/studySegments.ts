@@ -12,16 +12,18 @@ export interface StudySegment {
  * - 90min study, 15min break (Deep work)
  * - Custom work/break durations
  */
-export function calculateStudySegments(totalMinutes: number, customBreakDuration?: number, cycles?: number): StudySegment[] {
+export function calculateStudySegments(workDuration: number, customBreakDuration?: number, cycles?: number): StudySegment[] {
   const segments: StudySegment[] = []
   let currentTime = 0
 
   // Handle custom work/break pattern
   if (customBreakDuration !== undefined) {
     // For custom timers, create work-break pattern that repeats
-    const workDuration = totalMinutes
     const breakTime = customBreakDuration
     const numCycles = cycles || 1
+    
+    // Debug logging for segment calculation (only once)
+    console.log('📊 SEGMENTS CALCULATION:', { workDuration, customBreakDuration, cycles, numCycles })
     
     // Create multiple cycles of work-break patterns
     for (let cycle = 0; cycle < numCycles; cycle++) {
@@ -33,8 +35,8 @@ export function calculateStudySegments(totalMinutes: number, customBreakDuration
       })
       currentTime += workDuration
       
-      // Add break session (except for the last cycle if break time > 0)
-      if (breakTime > 0 && (cycle < numCycles - 1 || numCycles === 1)) {
+      // Add break session (except for the last cycle)
+      if (breakTime > 0 && cycle < numCycles - 1) {
         segments.push({ 
           start: currentTime, 
           end: currentTime + breakTime, 
@@ -44,8 +46,14 @@ export function calculateStudySegments(totalMinutes: number, customBreakDuration
       }
     }
     
+    // Debug logging for created segments (only once)
+    console.log('📊 SEGMENTS CREATED:', segments.map(s => `${s.type}(${s.start}-${s.end})`).join(', '))
+    
     return segments
   }
+
+  // For non-custom timers, use the existing logic with the work duration as total minutes
+  const totalMinutes = workDuration
 
   if (totalMinutes <= 30) {
     // Short sessions: mostly study with minimal break
@@ -104,7 +112,15 @@ export function calculateStudySegments(totalMinutes: number, customBreakDuration
 }
 
 /**
- * Get the current segment type and remaining time
+ * Get information about the current segment based on elapsed time.
+ * 
+ * @param segments - Array of study segments to search through
+ * @param currentMinutes - Current elapsed time in minutes
+ * @returns Object containing current segment info and status
+ * 
+ * @example
+ * const info = getCurrentSegmentInfo(segments, 15)
+ * console.log(info.currentSegment?.type) // 'study' or 'break'
  */
 export function getCurrentSegmentInfo(segments: StudySegment[], currentMinutes: number) {
   const currentSegment = segments.find(segment => 
@@ -124,38 +140,4 @@ export function getCurrentSegmentInfo(segments: StudySegment[], currentMinutes: 
   }
 }
 
-/**
- * Check if it's time to transition to the next segment
- */
-export function shouldTransition(segments: StudySegment[], currentMinutes: number) {
-  const currentSegment = segments.find(segment => 
-    currentMinutes >= segment.start && currentMinutes < segment.end
-  )
-  
-  return !currentSegment || currentMinutes >= currentSegment.end
-}
 
-/**
- * Get statistics about the study session
- */
-export function getSessionStats(segments: StudySegment[]) {
-  const studyTime = segments
-    .filter(s => s.type === 'study')
-    .reduce((acc, s) => acc + (s.end - s.start), 0)
-  
-  const breakTime = segments
-    .filter(s => s.type === 'break')
-    .reduce((acc, s) => acc + (s.end - s.start), 0)
-  
-  const studySegmentCount = segments.filter(s => s.type === 'study').length
-  const breakSegmentCount = segments.filter(s => s.type === 'break').length
-  
-  return {
-    studyTime,
-    breakTime,
-    totalTime: studyTime + breakTime,
-    studySegmentCount,
-    breakSegmentCount,
-    studyPercentage: Math.round((studyTime / (studyTime + breakTime)) * 100)
-  }
-}

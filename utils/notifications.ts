@@ -1,3 +1,5 @@
+import { AudioNotificationService } from './audioNotifications'
+
 export interface NotificationOptions {
   title: string
   body: string
@@ -10,6 +12,7 @@ export class StudyNotifications {
   private static instance: StudyNotifications
   private permission: NotificationPermission = 'default'
   private enabled: boolean = false
+  private audioService = AudioNotificationService.getInstance()
 
   private constructor() {
     this.checkPermission()
@@ -130,7 +133,7 @@ export class StudyNotifications {
   // Predefined notifications for common study events
   showBreakStart(duration: number) {
     return this.show({
-      title: 'Break Time! 🌟',
+      title: 'Break Time!',
       body: `Time for a ${duration} minute break. Rest and recharge!`,
       tag: 'break-start',
       requireInteraction: false
@@ -139,7 +142,7 @@ export class StudyNotifications {
 
   showStudyStart(duration: number) {
     return this.show({
-      title: 'Study Time! 📚',
+      title: 'Study Time!',
       body: `Back to studying for ${duration} minutes. Stay focused!`,
       tag: 'study-start',
       requireInteraction: false
@@ -148,7 +151,7 @@ export class StudyNotifications {
 
   showSessionComplete(duration: number) {
     return this.show({
-      title: 'Session Complete! 🎉',
+      title: 'Session Complete!',
       body: `Great job! You studied for ${duration} minutes. Time to log what you learned.`,
       tag: 'session-complete',
       requireInteraction: true
@@ -157,56 +160,27 @@ export class StudyNotifications {
 
   showStudyReminder() {
     return this.show({
-      title: 'Study Reminder 📖',
+      title: 'Study Reminder',
       body: 'Ready to continue your learning journey?',
       tag: 'study-reminder',
       requireInteraction: false
     })
   }
 
-  // Play notification sound (fallback for when notifications are disabled)
-  playSound(type: 'break' | 'study' | 'complete' = 'complete') {
-    // Only run on client-side
-    if (typeof window === 'undefined') return
-    
+  // Play notification sound using dedicated audio service
+  async playSound(type: 'break' | 'study' | 'complete' = 'complete') {
     try {
-      // Check if AudioContext is available
-      if (!window.AudioContext && !(window as Window & {webkitAudioContext?: typeof AudioContext}).webkitAudioContext) {
-        console.warn('AudioContext not supported')
-        return
+      switch (type) {
+        case 'break':
+          await this.audioService.playBreakStartSound()
+          break
+        case 'study':
+          await this.audioService.playStudyStartSound()
+          break
+        case 'complete':
+          await this.audioService.playSessionCompleteSound()
+          break
       }
-      
-      // Create audio context for different notification sounds
-      const AudioContextClass = window.AudioContext || (window as Window & {webkitAudioContext?: typeof AudioContext}).webkitAudioContext
-      const audioContext = new AudioContextClass()
-      const oscillator = audioContext.createOscillator()
-      const gainNode = audioContext.createGain()
-
-      oscillator.connect(gainNode)
-      gainNode.connect(audioContext.destination)
-
-      // Different frequencies for different notification types
-      const frequencies = {
-        break: [523.25, 659.25], // C5, E5
-        study: [440, 554.37], // A4, C#5
-        complete: [523.25, 659.25, 783.99] // C5, E5, G5
-      }
-
-      const freq = frequencies[type]
-      oscillator.frequency.setValueAtTime(freq[0], audioContext.currentTime)
-      
-      if (freq.length > 1) {
-        oscillator.frequency.setValueAtTime(freq[1], audioContext.currentTime + 0.2)
-      }
-      if (freq.length > 2) {
-        oscillator.frequency.setValueAtTime(freq[2], audioContext.currentTime + 0.4)
-      }
-
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime)
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6)
-
-      oscillator.start(audioContext.currentTime)
-      oscillator.stop(audioContext.currentTime + 0.6)
     } catch (error) {
       console.warn('Could not play notification sound:', error)
     }

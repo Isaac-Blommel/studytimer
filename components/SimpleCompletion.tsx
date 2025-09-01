@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react'
 interface SimpleCompletionProps {
   isVisible: boolean
   duration: number
-  studyMethod: string
   onComplete: () => void
 }
 

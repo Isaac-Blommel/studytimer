@@ -1,7 +1,8 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
-import { SessionService, StudySession } from '../lib/sessionService'
+import { SessionService } from '../lib/sessionService'
+import { StudySession } from '../types/services'
 
 interface SessionContextType {
   sessions: StudySession[]
@@ -21,15 +22,18 @@ interface SessionContextType {
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined)
 
+// Default session stats to prevent duplication
+const defaultSessionStats = {
+  totalStudyTime: 0,
+  totalSessions: 0,
+  averageSessionLength: 0,
+  thisWeekTime: 0,
+  thisWeekSessions: 0
+}
+
 export const SessionProvider = ({ children }: { children: ReactNode }) => {
   const [sessions, setSessions] = useState<StudySession[]>([])
-  const [sessionStats, setSessionStats] = useState({
-    totalStudyTime: 0,
-    totalSessions: 0,
-    averageSessionLength: 0,
-    thisWeekTime: 0,
-    thisWeekSessions: 0
-  })
+  const [sessionStats, setSessionStats] = useState(defaultSessionStats)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -71,8 +75,17 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       const updatedStats = await sessionService.getSessionStats()
       setSessionStats(updatedStats)
     } catch (err) {
-      setError('Failed to save session')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save session'
+      setError(errorMessage)
       console.error('Error saving session:', err)
+      
+      // Show user-friendly error message
+      if (errorMessage.includes('Authentication expired')) {
+        alert('Your session has expired. Please refresh the page and log in again.')
+      } else if (errorMessage.includes('Failed to save session')) {
+        alert('Unable to save your study session. Please check your internet connection and try again.')
+      }
+      
       throw err
     }
   }
@@ -86,13 +99,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       setError(null)
       await sessionService.clearAllSessions()
       setSessions([])
-      setSessionStats({
-        totalStudyTime: 0,
-        totalSessions: 0,
-        averageSessionLength: 0,
-        thisWeekTime: 0,
-        thisWeekSessions: 0
-      })
+      setSessionStats(defaultSessionStats)
     } catch (err) {
       setError('Failed to clear sessions')
       console.error('Error clearing sessions:', err)

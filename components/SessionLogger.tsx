@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import ConfettiEffect from './ConfettiEffect'
 import AchievementBadge from './AchievementBadge'
+import { ACHIEVEMENT_THRESHOLDS } from '../constants/achievements'
+import { Achievement } from '../types/components'
 
 interface SessionLoggerProps {
   isVisible: boolean
@@ -17,7 +19,7 @@ const SessionLogger = ({ isVisible, duration, onSave, onSkip }: SessionLoggerPro
   const [displayedPrompt, setDisplayedPrompt] = useState('')
   const [showContent, setShowContent] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
-  const [achievements, setAchievements] = useState<Array<{type: 'streak' | 'time' | 'sessions' | 'milestone', value: number}>>([])
+  const [achievements, setAchievements] = useState<Achievement[]>([])
 
   // Check for achievements based on duration
   useEffect(() => {
@@ -25,17 +27,17 @@ const SessionLogger = ({ isVisible, duration, onSave, onSkip }: SessionLoggerPro
       const newAchievements = []
       
       // Time-based achievements
-      if (duration >= 120) newAchievements.push({ type: 'time' as const, value: 2 })
-      else if (duration >= 90) newAchievements.push({ type: 'milestone' as const, value: 1 })
-      else if (duration >= 60) newAchievements.push({ type: 'time' as const, value: 1 })
+      if (duration >= ACHIEVEMENT_THRESHOLDS.TIME_HOUR_2) newAchievements.push({ type: 'time' as const, value: 2 })
+      else if (duration >= ACHIEVEMENT_THRESHOLDS.TIME_HOUR_1_5) newAchievements.push({ type: 'milestone' as const, value: 1 })
+      else if (duration >= ACHIEVEMENT_THRESHOLDS.TIME_HOUR_1) newAchievements.push({ type: 'time' as const, value: 1 })
       
       // Session milestone
-      if (duration >= 25) newAchievements.push({ type: 'sessions' as const, value: 1 })
+      if (duration >= ACHIEVEMENT_THRESHOLDS.SESSION_MIN) newAchievements.push({ type: 'sessions' as const, value: 1 })
       
       setAchievements(newAchievements)
       
       // Trigger confetti for significant achievements
-      if (duration >= 90) {
+      if (duration >= ACHIEVEMENT_THRESHOLDS.CONFETTI_TRIGGER) {
         setTimeout(() => setShowConfetti(true), 1000)
       }
     }
@@ -90,11 +92,11 @@ const SessionLogger = ({ isVisible, duration, onSave, onSkip }: SessionLoggerPro
   }
 
   const getCelebrationMessage = () => {
-    if (duration >= 120) return "Incredible focus! You're a study champion! 🌟"
-    if (duration >= 90) return "Amazing dedication! Keep crushing it! 🚀"
-    if (duration >= 60) return "Great job staying focused! 💪"
-    if (duration >= 30) return "Nice work! Every minute counts! ⭐"
-    return "Good start! Building habits one session at a time! 🎯"
+    if (duration >= 120) return "Incredible focus! You're a study champion!"
+    if (duration >= 90) return "Amazing dedication! Keep crushing it!"
+    if (duration >= 60) return "Great job staying focused!"
+    if (duration >= 30) return "Nice work! Every minute counts!"
+    return "Good start! Building habits one session at a time!"
   }
 
   if (!isVisible) return null
@@ -111,9 +113,9 @@ const SessionLogger = ({ isVisible, duration, onSave, onSkip }: SessionLoggerPro
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </div>
-            <div className="absolute -top-2 -right-2 text-2xl animate-bounce">🎉</div>
-            <div className="absolute -top-1 -left-3 text-xl animate-bounce" style={{animationDelay: '0.2s'}}>✨</div>
-            <div className="absolute -bottom-1 -right-1 text-lg animate-bounce" style={{animationDelay: '0.4s'}}>🌟</div>
+            <div className="absolute -top-2 -right-2 text-2xl animate-bounce">*</div>
+            <div className="absolute -top-1 -left-3 text-xl animate-bounce" style={{animationDelay: '0.2s'}}>+</div>
+            <div className="absolute -bottom-1 -right-1 text-lg animate-bounce" style={{animationDelay: '0.4s'}}>!</div>
           </div>
           
           <h2 className="text-3xl font-bold text-foreground mb-2 animate-fade-in-up">
@@ -199,7 +201,7 @@ const SessionLogger = ({ isVisible, duration, onSave, onSkip }: SessionLoggerPro
           {achievements.length > 0 && showContent && (
             <div className="animate-fade-in-up" style={{animationDelay: '1s'}}>
               <div className="text-center mb-4">
-                <h3 className="text-lg font-semibold text-foreground mb-3">New Achievements! 🎉</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-3">New Achievements!</h3>
                 <div className="flex justify-center space-x-3">
                   {achievements.map((achievement, index) => (
                     <AchievementBadge

@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 
 interface TimerMethod {
   id: string
@@ -13,38 +12,38 @@ interface TimerMethod {
 const timerMethods: TimerMethod[] = [
   {
     id: 'pomodoro',
-    name: 'Pomodoro',
+    name: 'Pomodoro Technique',
     duration: 25,
     breakDuration: 5,
-    description: 'Classic focused bursts'
+    description: 'Short focused bursts with quick breaks to prevent burnout and maintain high productivity'
   },
   {
     id: 'fifty-ten',
     name: '50/10 Method',
     duration: 50,
     breakDuration: 10,
-    description: 'Extended focus sessions'
+    description: 'Extended focus sessions designed for sustained productivity without overwhelming the brain'
   },
   {
     id: 'ninety-fifteen',
     name: '90/15 Method',
     duration: 90,
     breakDuration: 15,
-    description: 'Deep work blocks'
+    description: 'Deep work based on ultradian rhythms - natural cycles of high and low alertness'
   },
   {
-    id: 'two-thirty',
-    name: '2 Hour Deep Work',
+    id: 'two-hour',
+    name: '2-Hour Deep Work',
     duration: 120,
     breakDuration: 30,
-    description: 'Maximum focus time'
+    description: 'Maximum concentration sessions for tasks requiring minimal interruptions'
   },
   {
     id: 'custom',
     name: 'Custom Timer',
     duration: 0,
     breakDuration: 0,
-    description: 'Design your own cycle'
+    description: 'Choose from preset variations or design your own schedule'
   }
 ]
 

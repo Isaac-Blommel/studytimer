@@ -1,0 +1,19 @@
+export const AUDIO_FREQUENCIES = {
+  STUDY_START: 600,
+  BREAK_START: 400,
+  SESSION_COMPLETE: 523,
+  TRANSITION_LOW: 440,
+  TRANSITION_HIGH: 880
+} as const
+
+export const AUDIO_DURATIONS = {
+  SHORT_BEEP: 300,
+  LONG_BEEP: 400,
+  SEQUENCE_DELAY: 200
+} as const
+
+export const AUDIO_VOLUMES = {
+  QUIET: 0.1,
+  NORMAL: 0.25,
+  LOUD: 0.4
+} as const

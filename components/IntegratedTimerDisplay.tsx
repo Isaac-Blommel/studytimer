@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import PieChartTimer from './PieChartTimer'
 import { calculateStudySegments, getCurrentSegmentInfo, StudySegment } from '../utils/studySegments'
 import { useTimer } from '../contexts/TimerContext'
+import { useSettings } from '../contexts/SettingsContext'
 import { notifications } from '../utils/notifications'
+import InAppNotification from './InAppNotification'
+import TransitionConfirmation from './TransitionConfirmation'
 
 interface IntegratedTimerDisplayProps {
   duration: number
@@ -18,10 +21,16 @@ const IntegratedTimerDisplay = ({
   onComplete, 
   onSegmentChange 
 }: IntegratedTimerDisplayProps) => {
-  const { timerState } = useTimer()
+  const { timerState, confirmTransition, cancelTransition } = useTimer()
+  const { settings } = useSettings()
   const [segments, setSegments] = useState<StudySegment[]>([])
   const [currentSegment, setCurrentSegment] = useState<StudySegment | null>(null)
   const [lastSegmentType, setLastSegmentType] = useState<'study' | 'break' | null>(null)
+  const completionHandledRef = useRef(false)
+  const lastNotificationTimeRef = useRef<number>(0)
+  const [showInAppNotification, setShowInAppNotification] = useState(false)
+  const [notificationData, setNotificationData] = useState({ title: '', message: '' })
+  const sessionIdRef = useRef<number>(Date.now()) // Unique ID for this timer session
   
   // Calculate current time from timer context
   const totalDuration = (() => {
@@ -36,13 +45,19 @@ const IntegratedTimerDisplay = ({
   })()
   const currentTime = (totalDuration * 60) - timerState.timeLeft
 
-  // Initialize segments when timer context duration changes
+  // Initialize segments when timer context duration changes (ONLY when timer params change)
   useEffect(() => {
     if (timerState.studyDuration > 0) {
       const newSegments = calculateStudySegments(timerState.studyDuration, timerState.breakDuration, timerState.cycles)
       setSegments(newSegments)
+      // Reset completion handler when new timer starts
+      completionHandledRef.current = false
+      lastNotificationTimeRef.current = 0
+      
+      // Generate new session ID for fresh notifications
+      sessionIdRef.current = Date.now()
     }
-  }, [timerState.studyDuration, timerState.breakDuration, timerState.cycles])
+  }, [timerState.studyDuration, timerState.breakDuration, timerState.cycles]) // Removed settings.desktopNotifications
 
   // Update current segment based on elapsed time
   useEffect(() => {
@@ -55,34 +70,102 @@ const IntegratedTimerDisplay = ({
         
         // Notify parent of segment changes and show notifications
         if (lastSegmentType !== segmentInfo.segment.type) {
+          const currentMinutes = Math.floor(currentTime / 60)
+          const transitionTime = segmentInfo.segment.start
+          
           setLastSegmentType(segmentInfo.segment.type)
           onSegmentChange?.(segmentInfo.segment.type)
           
-          // Show notification for segment transitions
-          if (timerState.isActive && !timerState.isPaused) {
+          // Show notification for segment transitions - only if we haven't notified for this exact transition
+          if (timerState.isActive && !timerState.isPaused && lastNotificationTimeRef.current !== transitionTime) {
+            lastNotificationTimeRef.current = transitionTime
+            
             const segmentDuration = segmentInfo.segment.end - segmentInfo.segment.start
             if (segmentInfo.segment.type === 'break') {
-              notifications.showBreakStart(segmentDuration)
+              // Show study complete notification when transitioning from study to break
+              if (lastSegmentType === 'study') {
+                // Show in-app notification for study completion
+                setNotificationData({
+                  title: 'Study Session Complete!',
+                  message: `Great work! You just finished a focused study session. Time for a well-deserved break.`
+                })
+                setShowInAppNotification(true)
+
+                // Desktop notification for study completion
+                if (settings.desktopNotifications) {
+                  // Enable the old notification system first
+                  notifications.enable()
+                  // Show browser notification
+                  notifications.show({
+                    title: 'Study Complete!',
+                    body: `Excellent work! You just finished your study session. Time for a break.`,
+                    tag: 'study-complete'
+                  })
+                  
+                  // Desktop notification handled by notifications service below
+                }
+              }
+
+              // Show browser notifications if desktop notifications are enabled
+              if (settings.desktopNotifications) {
+                // Enable the old notification system first
+                notifications.enable()
+                notifications.showBreakStart(segmentDuration)
+              }
               notifications.playSound('break')
+              
+              // Desktop notification for break start
+              if (settings.desktopNotifications) {
+                const message = settings.autoBreaks 
+                  ? `Time for a ${segmentDuration} minute break. Relax and recharge!`
+                  : `Time for a ${segmentDuration} minute break. Click to continue when ready.`
+                
+                // Desktop notification handled by notifications service above
+                
+              }
             } else if (lastSegmentType === 'break') {
-              notifications.showStudyStart(segmentDuration)
+              // Show browser notifications if desktop notifications are enabled
+              if (settings.desktopNotifications) {
+                // Enable the old notification system first
+                notifications.enable()
+                notifications.showStudyStart(segmentDuration)
+              }
               notifications.playSound('study')
+              
+              // Desktop notification handled by notifications service above
             }
           }
         }
       }
     }
-  }, [currentTime, segments, lastSegmentType, onSegmentChange, timerState.isActive, timerState.isPaused])
+  }, [currentTime, segments, lastSegmentType, onSegmentChange, timerState.isActive, timerState.isPaused, settings.desktopNotifications, settings.autoBreaks])
 
-  // Monitor timer completion
+  // Monitor timer completion with guard to prevent multiple calls
   useEffect(() => {
-    if (timerState.timeLeft === 0 && totalDuration > 0) {
-      // Show completion notification
-      notifications.showSessionComplete(totalDuration)
+    if (timerState.timeLeft === 0 && totalDuration > 0 && timerState.isActive && !completionHandledRef.current) {
+      // Mark as handled immediately to prevent duplicate calls
+      completionHandledRef.current = true
+      
+      // Show completion notification (browser notification if desktop notifications enabled)
+      if (settings.desktopNotifications) {
+        // Enable the old notification system first
+        notifications.enable()
+        notifications.showSessionComplete(totalDuration)
+      }
       notifications.playSound('complete')
+      
+      // Desktop notification handled by notifications service above
+      
+      // Show in-app notification for session completion
+      setNotificationData({
+        title: 'Session Complete!',
+        message: `Amazing work! You just completed ${totalDuration} minutes of focused studying. Keep it up!`
+      })
+      setShowInAppNotification(true)
+      
       onComplete()
     }
-  }, [timerState.timeLeft, totalDuration, onComplete])
+  }, [timerState.timeLeft, totalDuration, timerState.isActive, settings.desktopNotifications]) // Remove onComplete from deps
 
 
   const getStatusMessage = () => {
@@ -103,13 +186,36 @@ const IntegratedTimerDisplay = ({
   }
 
   return (
-    <div className="flex flex-col items-center space-y-8 animate-slide-in">
+    <>
+      <InAppNotification
+        show={showInAppNotification}
+        title={notificationData.title}
+        message={notificationData.message}
+        type="success"
+        duration={6000}
+        onClose={() => setShowInAppNotification(false)}
+      />
+      
+      <TransitionConfirmation
+        show={!!timerState.pendingTransition}
+        fromType={timerState.pendingTransition?.fromType || 'study'}
+        toType={timerState.pendingTransition?.toType || 'break'}
+        onConfirm={confirmTransition}
+        onCancel={() => {}} // No cancel functionality needed
+      />
+      <div className="flex flex-col items-center space-y-8 animate-slide-in">
+      {/* Development Mode Indicator */}
+      {settings.developmentMode && (
+        <div className="bg-warning/20 border-2 border-warning text-warning px-4 py-2 rounded-lg font-bold text-sm animate-pulse">
+          DEVELOPMENT MODE - 10X SPEED
+        </div>
+      )}
+      
       {/* Pie Chart Timer */}
       <PieChartTimer
         totalDuration={totalDuration}
         currentTime={currentTime}
         isPaused={timerState.isPaused}
-        studySegments={segments}
       />
 
       {/* Status indicator */}
@@ -132,7 +238,7 @@ const IntegratedTimerDisplay = ({
               return (
                 <div
                   key={index}
-                  className={`flex items-center justify-between p-4 rounded-lg transition-all duration-300 border-2 min-h-[60px] ${
+                  className={`relative flex items-center justify-between p-4 rounded-lg transition-all duration-300 border-2 min-h-[60px] ${
                     isCurrentSegment
                       ? segment.type === 'study' 
                         ? 'bg-blue-500/20 border-blue-400 shadow-lg shadow-blue-500/25'
@@ -142,6 +248,15 @@ const IntegratedTimerDisplay = ({
                       : 'bg-white/5 border-white/30'
                   }`}
                 >
+                  {/* Active indicator - positioned absolutely to not affect layout */}
+                  {isCurrentSegment && (
+                    <div className="absolute -top-1 -right-1">
+                      <span className="text-xs bg-gradient-to-r from-primary to-accent text-white px-2 py-1 rounded-full font-bold shadow-lg animate-pulse">
+                        ACTIVE
+                      </span>
+                    </div>
+                  )}
+                  
                   <div className="flex items-center space-x-4 flex-1">
                     <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
                       segment.type === 'study' 
@@ -154,19 +269,15 @@ const IntegratedTimerDisplay = ({
                       {segment.type === 'study' ? 'Study' : 'Break'}
                     </span>
                   </div>
+                  
                   <div className="flex items-center space-x-3 flex-shrink-0">
                     <span className={`text-base font-medium ${
                       isCurrentSegment ? 'text-white' : 'text-gray-200'
                     }`}>
-                      {segment.start}m - {segment.end}m
+                      {segment.end - segment.start} min
                     </span>
-                    {isCurrentSegment && (
-                      <span className="text-xs bg-white/20 text-white px-3 py-1 rounded-full font-bold border border-white/30">
-                        ACTIVE
-                      </span>
-                    )}
                     {isPassed && (
-                      <span className="text-sm text-green-400 font-bold">✓</span>
+                      <span className="text-xs text-green-400 font-bold">DONE</span>
                     )}
                   </div>
                 </div>
@@ -175,7 +286,8 @@ const IntegratedTimerDisplay = ({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 

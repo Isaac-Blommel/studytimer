@@ -1,24 +1,35 @@
 'use client'
 
-import { useState } from 'react'
 import Navigation from '../../components/Navigation'
+import { useSettings } from '../../contexts/SettingsContext'
+import { useSession } from '../../contexts/SessionContext'
 
 const SettingsPage = () => {
-  const [soundEnabled, setSoundEnabled] = useState(true)
-  const [autoBreaks, setAutoBreaks] = useState(false)
-  const [notifications, setNotifications] = useState(true)
+  const { settings, updateSetting, requestNotificationPermission } = useSettings()
+  const { clearAllSessions } = useSession()
 
-  const toggleSetting = (setting: string) => {
-    switch (setting) {
-      case 'sound':
-        setSoundEnabled(!soundEnabled)
-        break
-      case 'autoBreaks':
-        setAutoBreaks(!autoBreaks)
-        break
-      case 'notifications':
-        setNotifications(!notifications)
-        break
+  const handleToggle = async (setting: keyof typeof settings) => {
+    if (setting === 'desktopNotifications' && !settings.desktopNotifications) {
+      // Request permission before enabling
+      const granted = await requestNotificationPermission()
+      if (!granted) {
+        alert('Desktop notifications permission denied. Please enable in browser settings.')
+        return
+      }
+    }
+    
+    updateSetting(setting, !settings[setting])
+  }
+
+  const handleClearAllData = async () => {
+    const confirmed = confirm('Are you sure you want to clear all study session data? This action cannot be undone.')
+    if (confirmed) {
+      try {
+        await clearAllSessions()
+        alert('All data has been cleared successfully.')
+      } catch (error) {
+        alert('Failed to clear data. Please try again.')
+      }
     }
   }
 
@@ -43,13 +54,13 @@ const SettingsPage = () => {
                     <div className="text-sm text-muted">Play sound when timer completes</div>
                   </div>
                   <button 
-                    onClick={() => toggleSetting('sound')}
+                    onClick={() => handleToggle('soundEnabled')}
                     className={`w-12 h-6 rounded-full relative transition-colors ${
-                      soundEnabled ? 'bg-primary' : 'bg-border'
+                      settings.soundEnabled ? 'bg-primary' : 'bg-border'
                     }`}
                   >
                     <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${
-                      soundEnabled ? 'right-0.5' : 'left-0.5'
+                      settings.soundEnabled ? 'right-0.5' : 'left-0.5'
                     }`}></div>
                   </button>
                 </div>
@@ -60,13 +71,13 @@ const SettingsPage = () => {
                     <div className="text-sm text-muted">Automatically start break timers</div>
                   </div>
                   <button 
-                    onClick={() => toggleSetting('autoBreaks')}
+                    onClick={() => handleToggle('autoBreaks')}
                     className={`w-12 h-6 rounded-full relative transition-colors ${
-                      autoBreaks ? 'bg-primary' : 'bg-border'
+                      settings.autoBreaks ? 'bg-primary' : 'bg-border'
                     }`}
                   >
                     <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${
-                      autoBreaks ? 'right-0.5' : 'left-0.5'
+                      settings.autoBreaks ? 'right-0.5' : 'left-0.5'
                     }`}></div>
                   </button>
                 </div>
@@ -77,13 +88,30 @@ const SettingsPage = () => {
                     <div className="text-sm text-muted">Show browser notifications for session updates</div>
                   </div>
                   <button 
-                    onClick={() => toggleSetting('notifications')}
+                    onClick={() => handleToggle('desktopNotifications')}
                     className={`w-12 h-6 rounded-full relative transition-colors ${
-                      notifications ? 'bg-primary' : 'bg-border'
+                      settings.desktopNotifications ? 'bg-primary' : 'bg-border'
                     }`}
                   >
                     <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${
-                      notifications ? 'right-0.5' : 'left-0.5'
+                      settings.desktopNotifications ? 'right-0.5' : 'left-0.5'
+                    }`}></div>
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+                  <div>
+                    <div className="font-medium text-foreground">Development Mode</div>
+                    <div className="text-sm text-muted">Timer runs 10x faster for testing (dev only)</div>
+                  </div>
+                  <button 
+                    onClick={() => handleToggle('developmentMode')}
+                    className={`w-12 h-6 rounded-full relative transition-colors ${
+                      settings.developmentMode ? 'bg-warning' : 'bg-border'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${
+                      settings.developmentMode ? 'right-0.5' : 'left-0.5'
                     }`}></div>
                   </button>
                 </div>
@@ -96,7 +124,10 @@ const SettingsPage = () => {
                 <button className="w-full bg-primary hover:bg-primary-hover text-white py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left">
                   Connect Google Calendar
                 </button>
-                <button className="w-full bg-danger/20 hover:bg-danger/30 text-danger border border-danger/30 py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left">
+                <button 
+                  onClick={handleClearAllData}
+                  className="w-full bg-danger/20 hover:bg-danger/30 text-danger border border-danger/30 py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left"
+                >
                   Clear All Data
                 </button>
               </div>
