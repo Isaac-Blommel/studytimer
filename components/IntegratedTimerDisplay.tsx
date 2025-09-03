@@ -36,8 +36,11 @@ const IntegratedTimerDisplay = ({
     if (timerState.breakDuration !== undefined && timerState.cycles !== undefined && timerState.cycles > 1) {
       // Multiple cycles: (work + break) × cycles - final break
       return (timerState.studyDuration + timerState.breakDuration) * timerState.cycles - timerState.breakDuration
+    } else if (timerState.breakDuration !== undefined && timerState.cycles !== undefined && timerState.cycles === 1) {
+      // Single cycle: only work duration, no break (matches Session Overview)
+      return timerState.studyDuration
     } else if (timerState.breakDuration !== undefined) {
-      // Single cycle: work + break
+      // Legacy case: work + break
       return timerState.studyDuration + timerState.breakDuration
     }
     return timerState.studyDuration

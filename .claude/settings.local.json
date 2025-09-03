@@ -41,7 +41,8 @@
       "Bash(C:Projectsmy-app)",
       "Bash(npm run build:*)",
       "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
-      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)"
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

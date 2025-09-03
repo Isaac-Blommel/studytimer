@@ -173,6 +173,8 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
             const totalDuration = (() => {
               if (prevState.breakDuration !== undefined && prevState.cycles !== undefined && prevState.cycles > 1) {
                 return (prevState.studyDuration + prevState.breakDuration) * prevState.cycles - prevState.breakDuration
+              } else if (prevState.breakDuration !== undefined && prevState.cycles !== undefined && prevState.cycles === 1) {
+                return prevState.studyDuration
               } else if (prevState.breakDuration !== undefined) {
                 return prevState.studyDuration + prevState.breakDuration
               }
@@ -225,8 +227,11 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
             if (prevState.breakDuration !== undefined && prevState.cycles !== undefined && prevState.cycles > 1) {
               // Multiple cycles: (work + break) × cycles - final break
               totalSessionDuration = (prevState.studyDuration + prevState.breakDuration) * prevState.cycles - prevState.breakDuration
+            } else if (prevState.breakDuration !== undefined && prevState.cycles !== undefined && prevState.cycles === 1) {
+              // Single cycle: only work duration, no break (matches Session Overview)
+              totalSessionDuration = prevState.studyDuration
             } else if (prevState.breakDuration !== undefined) {
-              // Single cycle: work + break
+              // Legacy case: work + break
               totalSessionDuration = prevState.studyDuration + prevState.breakDuration
             }
               
@@ -350,8 +355,11 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     if (breakDuration !== undefined && cycles !== undefined && cycles > 1) {
       // Multiple cycles: (work + break) × cycles - final break
       totalDuration = (duration + breakDuration) * cycles - breakDuration
+    } else if (breakDuration !== undefined && cycles !== undefined && cycles === 1) {
+      // Single cycle: only work duration, no break (matches Session Overview)
+      totalDuration = duration
     } else if (breakDuration !== undefined) {
-      // Single cycle: work + break
+      // Legacy case: work + break
       totalDuration = duration + breakDuration
     }
     
@@ -402,6 +410,8 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
       const totalDuration = (() => {
         if (timerState.breakDuration !== undefined && timerState.cycles !== undefined && timerState.cycles > 1) {
           return (timerState.studyDuration + timerState.breakDuration) * timerState.cycles - timerState.breakDuration
+        } else if (timerState.breakDuration !== undefined && timerState.cycles !== undefined && timerState.cycles === 1) {
+          return timerState.studyDuration
         } else if (timerState.breakDuration !== undefined) {
           return timerState.studyDuration + timerState.breakDuration
         }
