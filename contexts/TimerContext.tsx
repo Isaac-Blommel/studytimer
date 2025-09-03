@@ -2,13 +2,23 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { audioNotifications } from '@/utils/audioNotifications'
-import { calculateStudySegments, getCurrentSegmentInfo } from '@/utils/studySegments'
+import { notifications } from '@/utils/notifications'
+import { calculateStudySegments, getCurrentSegmentInfo, StudySegment } from '@/utils/studySegments'
 
 type StudyMethod = {
   id: string
   name: string
   cycles?: number
 } | null
+
+interface CompletionData {
+  method: string
+  duration: number
+  breakDuration: number
+  cycles: number
+  totalDuration: number
+  completionType: 'completed' | 'manual_stop'
+}
 
 interface TimerState {
   isActive: boolean
@@ -22,11 +32,13 @@ interface TimerState {
   selectedMethod: StudyMethod
   currentSegmentType?: 'study' | 'break'
   lastTransitionMinute?: number
+  cachedSegments?: StudySegment[] // Cache segments to avoid recalculating every second
   pendingTransition?: {
     fromType: 'study' | 'break'
     toType: 'study' | 'break'
     transitionTime: number
   }
+  completionData?: CompletionData // Data for the global completion modal
 }
 
 interface TimerContextType {
@@ -39,6 +51,7 @@ interface TimerContextType {
   isTimerRunning: () => boolean
   confirmTransition: () => void
   cancelTransition: () => void
+  clearCompletionData: () => void
 }
 
 const TimerContext = createContext<TimerContextType | undefined>(undefined)
@@ -59,7 +72,9 @@ const createDefaultTimerState = (): TimerState => ({
   selectedMethod: null,
   currentSegmentType: undefined,
   lastTransitionMinute: undefined,
-  pendingTransition: undefined
+  cachedSegments: undefined,
+  pendingTransition: undefined,
+  completionData: undefined
 })
 
 // Utility function to safely read settings from localStorage
@@ -153,18 +168,56 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
           if (newTimeLeft <= 0) {
             // Timer completed - play completion sound
             audioNotifications.playSessionCompleteSound()
+            
+            // Calculate completion data for global modal
+            const totalDuration = (() => {
+              if (prevState.breakDuration !== undefined && prevState.cycles !== undefined && prevState.cycles > 1) {
+                return (prevState.studyDuration + prevState.breakDuration) * prevState.cycles - prevState.breakDuration
+              } else if (prevState.breakDuration !== undefined) {
+                return prevState.studyDuration + prevState.breakDuration
+              }
+              return prevState.studyDuration
+            })()
+            
+            const actualDurationMinutes = Math.max(1, Math.round((totalDuration * 60) / 60))
+            
+            // Show desktop notification for session completion BEFORE showing the modal
+            notifications.show({
+              title: 'Session Complete!',
+              body: `Great job! You completed a ${actualDurationMinutes} minute ${prevState.selectedMethod?.name || 'study'} session. Time to log what you learned.`,
+              tag: 'session-complete',
+              requireInteraction: true
+            })
+            
+            const completionData: CompletionData = {
+              method: prevState.selectedMethod?.name || 'Study Session',
+              duration: actualDurationMinutes,
+              breakDuration: prevState.breakDuration || 0,
+              cycles: prevState.cycles || 1,
+              totalDuration: totalDuration,
+              completionType: 'completed'
+            }
+            
             return {
               ...prevState,
               isActive: false,
               timeLeft: 0,
               startTime: null,
-              currentSegmentType: undefined
+              currentSegmentType: undefined,
+              completionData
             }
           }
           
           // Check for segment transitions if we have break duration set
           if (prevState.breakDuration !== undefined && prevState.breakDuration > 0) {
-            const segments = calculateStudySegments(prevState.studyDuration, prevState.breakDuration, prevState.cycles)
+            // Use cached segments or calculate once and cache them
+            let segments = prevState.cachedSegments
+            let needsStateUpdate = false
+            
+            if (!segments) {
+              segments = calculateStudySegments(prevState.studyDuration, prevState.breakDuration, prevState.cycles)
+              needsStateUpdate = true
+            }
             
             // MULTIPLYING FACTOR APPROACH: Calculate elapsed time using the same logic as startTimer
             // This ensures consistency and guarantees cycles work
@@ -203,12 +256,51 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
               // Check if auto-start breaks is disabled
               const autoBreaks = getSettingValue('autoBreaks', true)
               
+              // Always play sounds and show notifications immediately when transitioning
+              // Calculate the actual duration of the segment we're transitioning to
+              const nextSegmentInfo = getCurrentSegmentInfo(segments, elapsedMinutes)
+              const segmentDuration = nextSegmentInfo ? Math.ceil(nextSegmentInfo.remainingMinutes) : prevState.breakDuration || 5
+              
+              if (newSegmentType === 'study') {
+                audioNotifications.playStudyStartSound()
+                notifications.playSound('study')
+                
+                // Show desktop notification with conditional text
+                const studyMessage = autoBreaks 
+                  ? `Back to studying for ${segmentDuration} minutes. Stay focused!`
+                  : `Back to studying for ${segmentDuration} minutes. Navigate to the timer and press Continue!`
+                
+                notifications.show({
+                  title: 'Study Time!',
+                  body: studyMessage,
+                  tag: 'study-start',
+                  requireInteraction: !autoBreaks
+                })
+                
+              } else if (newSegmentType === 'break') {
+                audioNotifications.playBreakStartSound()
+                notifications.playSound('break')
+                
+                // Show desktop notification with conditional text
+                const breakMessage = autoBreaks 
+                  ? `Time for a ${segmentDuration} minute break. Rest and recharge!`
+                  : `Time for a ${segmentDuration} minute break. Navigate to the timer and press Continue!`
+                
+                notifications.show({
+                  title: 'Break Time!',
+                  body: breakMessage,
+                  tag: 'break-start',
+                  requireInteraction: !autoBreaks
+                })
+              }
+              
               if (!autoBreaks) {
-                // Pause timer and set pending transition
+                // Pause timer and set pending transition (sounds already played above)
                 return {
                   ...prevState,
                   timeLeft: newTimeLeft,
                   isPaused: true,
+                  cachedSegments: needsStateUpdate ? segments : prevState.cachedSegments,
                   pendingTransition: {
                     fromType: prevState.currentSegmentType,
                     toType: newSegmentType,
@@ -216,20 +308,14 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
                   }
                 }
               } else {
-                // Auto-start: continue with transition
-                // Play transition sound
-                if (newSegmentType === 'study') {
-                  audioNotifications.playStudyStartSound()
-                } else if (newSegmentType === 'break') {
-                  audioNotifications.playBreakStartSound()
-                }
-                
+                // Auto-start: continue with transition (sounds already played above)
                 return {
                   ...prevState,
                   timeLeft: newTimeLeft,
                   currentSegmentType: newSegmentType,
                   isBreak: newSegmentType === 'break',
-                  lastTransitionMinute: Math.floor(elapsedMinutes)
+                  lastTransitionMinute: Math.floor(elapsedMinutes),
+                  cachedSegments: needsStateUpdate ? segments : prevState.cachedSegments
                 }
               }
             }
@@ -239,7 +325,8 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
               timeLeft: newTimeLeft,
               currentSegmentType: newSegmentType,
               isBreak: newSegmentType === 'break',
-              lastTransitionMinute: Math.floor(elapsedMinutes)
+              lastTransitionMinute: Math.floor(elapsedMinutes),
+              cachedSegments: needsStateUpdate ? segments : prevState.cachedSegments
             }
           }
           
@@ -310,7 +397,38 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const stopTimer = () => {
-    setTimerState(createDefaultTimerState())
+    // Create completion data for manual stop if timer was running
+    if (timerState.isActive && timerState.timeLeft > 0) {
+      const totalDuration = (() => {
+        if (timerState.breakDuration !== undefined && timerState.cycles !== undefined && timerState.cycles > 1) {
+          return (timerState.studyDuration + timerState.breakDuration) * timerState.cycles - timerState.breakDuration
+        } else if (timerState.breakDuration !== undefined) {
+          return timerState.studyDuration + timerState.breakDuration
+        }
+        return timerState.studyDuration
+      })()
+      
+      const totalDurationSeconds = totalDuration * 60
+      const actualDurationSeconds = totalDurationSeconds - timerState.timeLeft
+      const actualDurationMinutes = Math.max(1, Math.round(actualDurationSeconds / 60))
+      
+      const completionData: CompletionData = {
+        method: timerState.selectedMethod?.name || 'Study Session',
+        duration: actualDurationMinutes,
+        breakDuration: timerState.breakDuration || 0,
+        cycles: timerState.cycles || 1,
+        totalDuration: actualDurationMinutes,
+        completionType: 'manual_stop'
+      }
+      
+      setTimerState({
+        ...createDefaultTimerState(),
+        completionData
+      })
+    } else {
+      setTimerState(createDefaultTimerState())
+    }
+    
     if (typeof window !== 'undefined') {
       localStorage.removeItem(TIMER_STORAGE_KEY)
     }
@@ -338,12 +456,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
 
     const { toType } = timerState.pendingTransition
 
-    // Play transition sound
-    if (toType === 'study') {
-      audioNotifications.playStudyStartSound()
-    } else if (toType === 'break') {
-      audioNotifications.playBreakStartSound()
-    }
+    // Don't play sounds here - they were already played when the transition was detected
 
     setTimerState(prevState => ({
       ...prevState,
@@ -364,6 +477,13 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     }))
   }
 
+  const clearCompletionData = () => {
+    setTimerState(prevState => ({
+      ...prevState,
+      completionData: undefined
+    }))
+  }
+
   const value: TimerContextType = {
     timerState,
     startTimer,
@@ -373,7 +493,8 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     resetTimer,
     isTimerRunning,
     confirmTransition,
-    cancelTransition
+    cancelTransition,
+    clearCompletionData
   }
 
   return <TimerContext.Provider value={value}>{children}</TimerContext.Provider>

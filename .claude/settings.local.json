@@ -37,7 +37,11 @@
       "Bash(curl:*)",
       "Read(c:\\Users\\piano\\Downloads/**)",
       "Read(c:\\Users\\piano\\Downloads/**)",
-      "Read(c:\\Users\\piano\\Downloads/**)"
+      "Read(c:\\Users\\piano\\Downloads/**)",
+      "Bash(C:Projectsmy-app)",
+      "Bash(npm run build:*)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)"
     ],
     "deny": [],
     "ask": []

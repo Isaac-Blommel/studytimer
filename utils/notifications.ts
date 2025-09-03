@@ -27,7 +27,7 @@ export class StudyNotifications {
   }
 
   private checkPermission() {
-    if ('Notification' in window) {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
       this.permission = Notification.permission
     }
   }
@@ -60,7 +60,7 @@ export class StudyNotifications {
   }
 
   async requestPermission(): Promise<boolean> {
-    if (!('Notification' in window)) {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
       console.warn('This browser does not support notifications')
       return false
     }
@@ -103,7 +103,7 @@ export class StudyNotifications {
   }
 
   show(options: NotificationOptions): Notification | null {
-    if (!this.isEnabled()) {
+    if (typeof window === 'undefined' || !this.isEnabled()) {
       return null
     }
 

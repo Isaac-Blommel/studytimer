@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { SessionService } from '../lib/sessionService'
-import { StudySession } from '../types/services'
+import { StudySession, StreakData } from '../types/services'
 
 interface SessionContextType {
   sessions: StudySession[]
@@ -13,6 +13,7 @@ interface SessionContextType {
     thisWeekTime: number
     thisWeekSessions: number
   }
+  streakData: StreakData
   loading: boolean
   error: string | null
   addSession: (session: Omit<StudySession, 'id' | 'timestamp'>) => Promise<void>
@@ -31,9 +32,18 @@ const defaultSessionStats = {
   thisWeekSessions: 0
 }
 
+const defaultStreakData: StreakData = {
+  currentStreak: 0,
+  longestStreak: 0,
+  lastStudyDate: null,
+  streakStatus: 'no_streak',
+  daysSinceLastStudy: 0
+}
+
 export const SessionProvider = ({ children }: { children: ReactNode }) => {
   const [sessions, setSessions] = useState<StudySession[]>([])
   const [sessionStats, setSessionStats] = useState(defaultSessionStats)
+  const [streakData, setStreakData] = useState<StreakData>(defaultStreakData)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,6 +54,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true)
       setError(null)
       
+      // Load core data first (sessions and stats)
       const [loadedSessions, stats] = await Promise.all([
         sessionService.getAllSessions(),
         sessionService.getSessionStats()
@@ -51,6 +62,16 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       
       setSessions(loadedSessions)
       setSessionStats(stats)
+      
+      // Try to load streak data separately - don't fail if it doesn't work
+      try {
+        const streaks = await sessionService.getStreakData()
+        setStreakData(streaks)
+      } catch (streakError) {
+        console.warn('Streak data not available (database migration may not be complete):', streakError)
+        setStreakData(defaultStreakData)
+      }
+      
     } catch (err) {
       setError('Failed to load sessions')
       console.error('Error loading sessions:', err)
@@ -68,12 +89,20 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       setError(null)
       const newSession = await sessionService.saveSession(sessionData)
       
-      // Update local state optimistically
-      setSessions(prev => [...prev, newSession])
+      // Update local state optimistically - add to beginning to maintain newest-first order
+      setSessions(prev => [newSession, ...prev])
       
-      // Refresh stats
+      // Refresh stats 
       const updatedStats = await sessionService.getSessionStats()
       setSessionStats(updatedStats)
+      
+      // Try to refresh streak data - don't fail if it doesn't work
+      try {
+        const updatedStreaks = await sessionService.getStreakData()
+        setStreakData(updatedStreaks)
+      } catch (streakError) {
+        console.warn('Could not refresh streak data:', streakError)
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save session'
       setError(errorMessage)
@@ -110,6 +139,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
   const value: SessionContextType = {
     sessions,
     sessionStats,
+    streakData,
     loading,
     error,
     addSession,

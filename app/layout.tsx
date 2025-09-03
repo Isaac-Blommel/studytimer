@@ -22,6 +22,7 @@ import { TimerProvider } from '../contexts/TimerContext';
 import { SessionProvider } from '../contexts/SessionContext';
 import { SettingsProvider } from '../contexts/SettingsContext';
 import ProtectedRoute from '../components/ProtectedRoute';
+import GlobalTimerCompleteModal from '../components/GlobalTimerCompleteModal';
 
 export default function RootLayout({
   children,
@@ -41,6 +42,7 @@ export default function RootLayout({
                   <div className="min-h-screen">
                     {children}
                   </div>
+                  <GlobalTimerCompleteModal />
                 </ProtectedRoute>
               </TimerProvider>
             </SessionProvider>

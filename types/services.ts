@@ -29,6 +29,22 @@ export interface StudySession {
 
 export type NotificationType = 'break' | 'study' | 'complete'
 
+export interface StreakData {
+  currentStreak: number
+  longestStreak: number
+  lastStudyDate: Date | null
+  streakStatus: 'active_today' | 'at_risk' | 'broken' | 'no_streak'
+  daysSinceLastStudy: number
+}
+
+export interface UserStats {
+  totalStudyTime: number
+  totalSessions: number
+  currentStreak: number
+  longestStreak: number
+  lastStudyDate: Date | null
+}
+
 export interface NotificationSettings {
   enabled: boolean
   desktopNotifications: boolean

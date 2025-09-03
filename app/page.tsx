@@ -6,7 +6,6 @@ import Navigation from '../components/Navigation'
 import TimerMethodSelector from '../components/TimerMethodSelector'
 import DurationSelector from '../components/DurationSelector'
 import CustomTimerSetup from '../components/CustomTimerSetup'
-import SessionNotesModal from '../components/SessionNotesModal'
 import SimpleCompletion from '../components/SimpleCompletion'
 import FocusBackground from '../components/FocusBackground'
 import IntegratedTimerDisplay from '../components/IntegratedTimerDisplay'
@@ -23,17 +22,8 @@ interface TimerMethod {
   cycles?: number
 }
 
-type AppState = 'method-selection' | 'duration-selection' | 'custom-setup' | 'timer-running' | 'session-notes' | 'completion'
+type AppState = 'method-selection' | 'duration-selection' | 'custom-setup' | 'timer-running' | 'completion'
 
-interface SessionData {
-  method: string
-  duration: number
-  breakDuration: number
-  cycles: number
-  startTime: number
-  endTime: number
-  completionType: 'completed' | 'manual_stop'
-}
 
 export default function Home() {
   const { addSession } = useSession()
@@ -41,7 +31,7 @@ export default function Home() {
   const { settings } = useSettings()
   const searchParams = useSearchParams()
   
-  // App state
+  // App state - start with method-selection but check for active timer
   const [appState, setAppState] = useState<AppState>('method-selection')
   
   // Timer method selection
@@ -49,8 +39,6 @@ export default function Home() {
   const [studyDuration, setStudyDuration] = useState(0)
   const [breakDuration, setBreakDuration] = useState(0)
   
-  // Session data for notes modal
-  const [currentSessionData, setCurrentSessionData] = useState<SessionData | null>(null)
   
   // Completion state
   const [showCompletion, setShowCompletion] = useState(false)
@@ -61,7 +49,6 @@ export default function Home() {
   const handleCompletionFinish = () => {
     // Reset everything and go back to method selection
     setShowCompletion(false)
-    setCurrentSessionData(null)
     setSelectedMethod(null)
     setStudyDuration(0)
     setBreakDuration(0)
@@ -81,6 +68,37 @@ export default function Home() {
     }
   }, [searchParams])
 
+  // Check if we should show the timer interface when page loads or timer state changes
+  useEffect(() => {
+    // If there's an active timer and we're not already showing it, switch to timer-running
+    if (timerState.isActive && appState !== 'timer-running' && appState !== 'completion') {
+      console.log('🔄 Active timer detected, switching to timer-running view')
+      
+      // Restore the timer settings from the context
+      setStudyDuration(timerState.studyDuration)
+      setBreakDuration(timerState.breakDuration || 0)
+      
+      // Recreate the method object from timer state
+      if (timerState.selectedMethod) {
+        setSelectedMethod({
+          id: timerState.selectedMethod.id,
+          name: timerState.selectedMethod.name,
+          duration: timerState.studyDuration,
+          breakDuration: timerState.breakDuration || 0,
+          description: `${timerState.studyDuration}min work, ${timerState.breakDuration || 0}min break`,
+          cycles: timerState.selectedMethod.cycles
+        })
+      }
+      
+      setAppState('timer-running')
+    }
+    // If timer is not active and we're showing timer-running, go back to method selection
+    else if (!timerState.isActive && appState === 'timer-running') {
+      console.log('🔄 Timer not active, switching back to method selection')
+      // Don't reset immediately - let the normal completion flow handle it
+    }
+  }, [timerState.isActive, timerState.studyDuration, timerState.breakDuration, timerState.selectedMethod, appState])
+
 
   // Method selection handlers
   const handleMethodSelect = (method: TimerMethod) => {
@@ -93,19 +111,24 @@ export default function Home() {
   }
 
   const handleDurationSelect = (duration: number, breakDur?: number, cycles?: number) => {
-    setStudyDuration(duration)
-    setBreakDuration(breakDur || calculateBreakDuration(selectedMethod!.id, duration))
+    const actualBreakDuration = breakDur || calculateBreakDuration(selectedMethod!.id, duration)
     
-    // Update selected method with cycles if provided
-    if (cycles && cycles > 1) {
-      setSelectedMethod({
-        ...selectedMethod!,
-        cycles,
-        name: `${selectedMethod!.name} (${cycles} cycles)`
-      })
+    setStudyDuration(duration)
+    setBreakDuration(actualBreakDuration)
+    
+    // Create method object with all the data BEFORE starting timer (same as custom timer approach)
+    const method = {
+      ...selectedMethod!,
+      cycles,
+      name: cycles && cycles > 1 ? `${selectedMethod!.name} (${cycles} cycles)` : selectedMethod!.name,
+      duration: duration,
+      breakDuration: actualBreakDuration
     }
     
-    startTimer(duration)
+    setSelectedMethod(method)
+    
+    // Use startTimerWithValues instead of startTimer to pass exact values
+    startTimerWithValues(duration, actualBreakDuration, method, cycles)
   }
 
   const handleCustomSetup = (workDuration: number, breakTime: number, cycles?: number) => {
@@ -181,92 +204,23 @@ export default function Home() {
   const stopTimer = () => {
     console.log('🛑 Stopping timer manually')
     stopTimerContext()
-    handleSessionEnd('manual_stop')
+    // Manual stop completion is now handled globally in TimerContext
+    setAppState('method-selection')
+    setSelectedMethod(null)
+    setStudyDuration(0)
+    setBreakDuration(0)
   }
 
   const handleTimerComplete = () => {
     console.log('✅ Timer completed naturally')
-    handleSessionEnd('completed')
+    // Timer completion is now handled globally in TimerContext
+    // Just reset the app state
+    setAppState('method-selection')
+    setSelectedMethod(null)
+    setStudyDuration(0)
+    setBreakDuration(0)
   }
 
-  const handleSessionEnd = (completionType: 'completed' | 'manual_stop') => {
-    console.log('🎯 Session ending:', completionType)
-    
-    // Calculate actual duration from timer context
-    const totalDuration = (() => {
-      if (timerState.breakDuration !== undefined && timerState.cycles !== undefined && timerState.cycles > 1) {
-        return (timerState.studyDuration + timerState.breakDuration) * timerState.cycles - timerState.breakDuration
-      } else if (timerState.breakDuration !== undefined) {
-        return timerState.studyDuration + timerState.breakDuration
-      }
-      return timerState.studyDuration
-    })()
-    
-    const totalDurationSeconds = totalDuration * 60
-    const actualDurationSeconds = totalDurationSeconds - timerState.timeLeft
-    const actualDurationMinutes = Math.max(1, Math.round(actualDurationSeconds / 60)) // Minimum 1 minute
-    
-    // Create session data
-    const sessionData: SessionData = {
-      method: selectedMethod?.name || 'Study Session',
-      duration: actualDurationMinutes,
-      breakDuration: timerState.breakDuration || 0,
-      cycles: timerState.cycles || 1,
-      startTime: timerState.startTime || Date.now(),
-      endTime: Date.now(),
-      completionType
-    }
-    
-    console.log('📊 Session data created:', sessionData)
-    
-    // Store session data and show notes modal
-    setCurrentSessionData(sessionData)
-    setAppState('session-notes')
-  }
-
-  const handleSaveStudyNotes = async (studyTopic: string, notes: string) => {
-    console.log('💾 Saving study notes:', { studyTopic, notes })
-    
-    if (!currentSessionData) {
-      console.error('No session data found!')
-      return
-    }
-
-    try {
-      // Create final session data matching test button format
-      const finalSessionData = {
-        duration: currentSessionData.duration,
-        studyTopic: studyTopic.trim() || 'No topic specified',
-        notes: notes.trim() || 'No notes provided',
-        method: currentSessionData.method,
-        breakDuration: currentSessionData.breakDuration,
-        cycles: currentSessionData.cycles,
-        totalDuration: currentSessionData.duration, // Simplified for now
-        completionStatus: currentSessionData.completionType,
-        methodVariation: `${currentSessionData.duration}/${currentSessionData.breakDuration}`
-      }
-      
-      console.log('📝 Final session data for Supabase:', finalSessionData)
-      
-      // Use the same addSession function that works for the test button
-      await addSession(finalSessionData)
-      
-      console.log('✅ Session saved successfully!')
-      
-      // Show completion screen
-      setAppState('completion')
-      setShowCompletion(true)
-      
-    } catch (error) {
-      console.error('❌ Failed to save session:', error)
-      alert('Failed to save your study session. Please try again.')
-    }
-  }
-
-  const handleSkipStudyNotes = async () => {
-    console.log('⏭️ Skipping study notes')
-    await handleSaveStudyNotes('', '')
-  }
 
   // Test button function (same as before)
   const handleTestSaveSession = async () => {
@@ -405,12 +359,14 @@ export default function Home() {
               />
               
               <div className="flex space-x-4">
-                <button
-                  onClick={pauseTimer}
-                  className="bg-warning hover:bg-warning/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
-                >
-                  {timerState.isPaused ? 'Resume' : 'Pause'}
-                </button>
+                {timerState.isActive && timerState.timeLeft > 0 && (
+                  <button
+                    onClick={pauseTimer}
+                    className="bg-warning hover:bg-warning/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
+                  >
+                    {timerState.isPaused ? 'Resume' : 'Pause'}
+                  </button>
+                )}
                 <button
                   onClick={stopTimer}
                   className="bg-danger hover:bg-danger/80 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
@@ -423,19 +379,10 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Study Notes Modal */}
-      <SessionNotesModal
-        isVisible={appState === 'session-notes'}
-        duration={currentSessionData?.duration || 0}
-        method={currentSessionData?.method || 'Study Session'}
-        onSave={handleSaveStudyNotes}
-        onSkip={handleSkipStudyNotes}
-      />
-
       {/* Completion Screen */}
       <SimpleCompletion
         isVisible={showCompletion}
-        duration={currentSessionData?.duration || 0}
+        duration={0}
         onComplete={handleCompletionFinish}
       />
     </div>

@@ -5,7 +5,6 @@ import PieChartTimer from './PieChartTimer'
 import { calculateStudySegments, getCurrentSegmentInfo, StudySegment } from '../utils/studySegments'
 import { useTimer } from '../contexts/TimerContext'
 import { useSettings } from '../contexts/SettingsContext'
-import { notifications } from '../utils/notifications'
 import InAppNotification from './InAppNotification'
 import TransitionConfirmation from './TransitionConfirmation'
 
@@ -80,60 +79,18 @@ const IntegratedTimerDisplay = ({
           if (timerState.isActive && !timerState.isPaused && lastNotificationTimeRef.current !== transitionTime) {
             lastNotificationTimeRef.current = transitionTime
             
-            const segmentDuration = segmentInfo.segment.end - segmentInfo.segment.start
             if (segmentInfo.segment.type === 'break') {
               // Show study complete notification when transitioning from study to break
               if (lastSegmentType === 'study') {
-                // Show in-app notification for study completion
+                // Show in-app notification for study completion (keep this for visual feedback)
                 setNotificationData({
                   title: 'Study Session Complete!',
                   message: `Great work! You just finished a focused study session. Time for a well-deserved break.`
                 })
                 setShowInAppNotification(true)
-
-                // Desktop notification for study completion
-                if (settings.desktopNotifications) {
-                  // Enable the old notification system first
-                  notifications.enable()
-                  // Show browser notification
-                  notifications.show({
-                    title: 'Study Complete!',
-                    body: `Excellent work! You just finished your study session. Time for a break.`,
-                    tag: 'study-complete'
-                  })
-                  
-                  // Desktop notification handled by notifications service below
-                }
               }
-
-              // Show browser notifications if desktop notifications are enabled
-              if (settings.desktopNotifications) {
-                // Enable the old notification system first
-                notifications.enable()
-                notifications.showBreakStart(segmentDuration)
-              }
-              notifications.playSound('break')
-              
-              // Desktop notification for break start
-              if (settings.desktopNotifications) {
-                const message = settings.autoBreaks 
-                  ? `Time for a ${segmentDuration} minute break. Relax and recharge!`
-                  : `Time for a ${segmentDuration} minute break. Click to continue when ready.`
-                
-                // Desktop notification handled by notifications service above
-                
-              }
-            } else if (lastSegmentType === 'break') {
-              // Show browser notifications if desktop notifications are enabled
-              if (settings.desktopNotifications) {
-                // Enable the old notification system first
-                notifications.enable()
-                notifications.showStudyStart(segmentDuration)
-              }
-              notifications.playSound('study')
-              
-              // Desktop notification handled by notifications service above
             }
+            // Note: Desktop notifications and sounds are now handled centrally in TimerContext
           }
         }
       }
@@ -146,22 +103,14 @@ const IntegratedTimerDisplay = ({
       // Mark as handled immediately to prevent duplicate calls
       completionHandledRef.current = true
       
-      // Show completion notification (browser notification if desktop notifications enabled)
-      if (settings.desktopNotifications) {
-        // Enable the old notification system first
-        notifications.enable()
-        notifications.showSessionComplete(totalDuration)
-      }
-      notifications.playSound('complete')
-      
-      // Desktop notification handled by notifications service above
-      
-      // Show in-app notification for session completion
+      // Show in-app notification for session completion (keep this for visual feedback)
       setNotificationData({
         title: 'Session Complete!',
         message: `Amazing work! You just completed ${totalDuration} minutes of focused studying. Keep it up!`
       })
       setShowInAppNotification(true)
+      
+      // Note: Desktop notifications and sounds are now handled centrally in TimerContext
       
       onComplete()
     }

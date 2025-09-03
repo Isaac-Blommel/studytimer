@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { StudySession, DatabaseSession } from '../types/services'
+import { StudySession, DatabaseSession, StreakData, UserStats } from '../types/services'
 
 export class SessionService {
   private static instance: SessionService
@@ -297,6 +297,143 @@ export class SessionService {
 
     } catch (error) {
       console.error('Error clearing sessions:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Retrieves streak data for the authenticated user.
+   * 
+   * @returns Promise resolving to streak data including current and longest streaks
+   * @throws Error if user is not authenticated or database query fails
+   */
+  async getStreakData(): Promise<StreakData> {
+    try {
+      await this.ensureValidSession()
+      
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        return {
+          currentStreak: 0,
+          longestStreak: 0,
+          lastStudyDate: null,
+          streakStatus: 'no_streak',
+          daysSinceLastStudy: 0
+        }
+      }
+
+      // Get streak data using the view we created
+      const { data: streakData, error } = await supabase
+        .from('user_streak_status')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error loading streak data:', error)
+        throw new Error('Failed to load streak data from database')
+      }
+
+      if (!streakData) {
+        // User doesn't exist in stats yet
+        return {
+          currentStreak: 0,
+          longestStreak: 0,
+          lastStudyDate: null,
+          streakStatus: 'no_streak',
+          daysSinceLastStudy: 0
+        }
+      }
+
+      return {
+        currentStreak: streakData.current_streak || 0,
+        longestStreak: streakData.longest_streak || 0,
+        lastStudyDate: streakData.last_study_date ? new Date(streakData.last_study_date) : null,
+        streakStatus: streakData.streak_status || 'no_streak',
+        daysSinceLastStudy: streakData.days_since_last_study || 0
+      }
+    } catch (error) {
+      console.error('Error getting streak data:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Retrieves complete user statistics including streaks.
+   * 
+   * @returns Promise resolving to user stats with totals and streak data
+   * @throws Error if user is not authenticated or database query fails
+   */
+  async getUserStats(): Promise<UserStats> {
+    try {
+      await this.ensureValidSession()
+      
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        return {
+          totalStudyTime: 0,
+          totalSessions: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          lastStudyDate: null
+        }
+      }
+
+      const { data: userStats, error } = await supabase
+        .from('user_stats')
+        .select('total_study_time, total_sessions, current_streak, longest_streak, last_study_date')
+        .eq('user_id', user.id)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading user stats:', error)
+        throw new Error('Failed to load user statistics')
+      }
+
+      if (!userStats) {
+        return {
+          totalStudyTime: 0,
+          totalSessions: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          lastStudyDate: null
+        }
+      }
+
+      return {
+        totalStudyTime: userStats.total_study_time || 0,
+        totalSessions: userStats.total_sessions || 0,
+        currentStreak: userStats.current_streak || 0,
+        longestStreak: userStats.longest_streak || 0,
+        lastStudyDate: userStats.last_study_date ? new Date(userStats.last_study_date) : null
+      }
+    } catch (error) {
+      console.error('Error getting user stats:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Manual function to update streak continuity (can be called periodically).
+   * This ensures streaks are broken if a user misses a day.
+   * 
+   * @returns Promise that resolves when streak check is complete
+   */
+  async checkStreakContinuity(): Promise<void> {
+    try {
+      await this.ensureValidSession()
+      
+      // Call the database function we created
+      const { error } = await supabase.rpc('check_streak_continuity')
+
+      if (error) {
+        console.error('Error checking streak continuity:', error)
+        throw new Error('Failed to check streak continuity')
+      }
+    } catch (error) {
+      console.error('Error in streak continuity check:', error)
       throw error
     }
   }

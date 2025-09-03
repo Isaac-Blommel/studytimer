@@ -5,7 +5,7 @@ import Navigation from '../../components/Navigation'
 import { useSession } from '../../contexts/SessionContext'
 
 const ProfilePage = () => {
-  const { sessions, sessionStats, loading, error } = useSession()
+  const { sessions, sessionStats, streakData, loading, error } = useSession()
   const [activeTab, setActiveTab] = useState('overview')
 
   // Use pre-calculated stats from context
@@ -24,6 +24,36 @@ const ProfilePage = () => {
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const getStreakStatusMessage = () => {
+    switch (streakData.streakStatus) {
+      case 'active_today':
+        return 'Active today!'
+      case 'at_risk':
+        return 'Study today to keep your streak!'
+      case 'broken':
+        return 'Streak broken - start a new one!'
+      case 'no_streak':
+        return 'Study 5+ minutes to start a streak!'
+      default:
+        return ''
+    }
+  }
+
+  const getStreakStatusColor = () => {
+    switch (streakData.streakStatus) {
+      case 'active_today':
+        return 'text-green-500'
+      case 'at_risk':
+        return 'text-yellow-500'
+      case 'broken':
+        return 'text-red-500'
+      case 'no_streak':
+        return 'text-muted'
+      default:
+        return 'text-muted'
+    }
   }
 
   const tabs = [
@@ -89,7 +119,7 @@ const ProfilePage = () => {
 
           {activeTab === 'overview' && (
             <div className="space-y-8 animate-slide-in">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
                 <div className="glass-effect rounded-xl p-6 text-center transform transition-all duration-300 hover:scale-105">
                   <div className="text-3xl font-bold text-accent mb-2">{totalStudyTime}m</div>
                   <div className="text-muted">Total Study Time</div>
@@ -108,6 +138,25 @@ const ProfilePage = () => {
                 <div className="glass-effect rounded-xl p-6 text-center transform transition-all duration-300 hover:scale-105">
                   <div className="text-3xl font-bold text-accent mb-2">{thisWeekTime}m</div>
                   <div className="text-muted">This Week</div>
+                </div>
+                
+                <div className="glass-effect rounded-xl p-6 text-center transform transition-all duration-300 hover:scale-105">
+                  <div className="text-3xl font-bold text-orange-500 mb-2">
+                    {streakData.currentStreak}
+                    <span className="text-sm ml-1">🔥</span>
+                  </div>
+                  <div className="text-muted mb-1">Current Streak</div>
+                  <div className={`text-xs font-medium ${getStreakStatusColor()}`}>
+                    {getStreakStatusMessage()}
+                  </div>
+                </div>
+                
+                <div className="glass-effect rounded-xl p-6 text-center transform transition-all duration-300 hover:scale-105">
+                  <div className="text-3xl font-bold text-purple-500 mb-2">
+                    {streakData.longestStreak}
+                    <span className="text-sm ml-1">🏆</span>
+                  </div>
+                  <div className="text-muted">Best Streak</div>
                 </div>
               </div>
 
