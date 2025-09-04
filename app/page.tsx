@@ -9,9 +9,7 @@ import CustomTimerSetup from '../components/CustomTimerSetup'
 import SimpleCompletion from '../components/SimpleCompletion'
 import FocusBackground from '../components/FocusBackground'
 import IntegratedTimerDisplay from '../components/IntegratedTimerDisplay'
-import { useSession } from '../contexts/SessionContext'
 import { useTimer } from '../contexts/TimerContext'
-import { useSettings } from '../contexts/SettingsContext'
 
 interface TimerMethod {
   id: string
@@ -26,9 +24,7 @@ type AppState = 'method-selection' | 'duration-selection' | 'custom-setup' | 'ti
 
 
 export default function Home() {
-  const { addSession } = useSession()
   const { timerState, startTimer: startTimerContext, pauseTimer: pauseTimerContext, stopTimer: stopTimerContext } = useTimer()
-  const { settings } = useSettings()
   const searchParams = useSearchParams()
   
   // App state - start with method-selection but check for active timer
@@ -166,19 +162,6 @@ export default function Home() {
     }
   }
 
-  // Timer control functions
-  const startTimer = (duration: number) => {
-    console.log('🚀 Starting timer for', duration, 'minutes')
-    setAppState('timer-running')
-    
-    // Start timer context with all the proper cycling logic
-    const method = {
-      id: selectedMethod?.id || 'custom',
-      name: selectedMethod?.name || 'Study Session',
-      cycles: selectedMethod?.cycles
-    }
-    startTimerContext(duration, method, breakDuration, selectedMethod?.cycles)
-  }
 
   // New function that takes direct values instead of relying on state
   const startTimerWithValues = (duration: number, breakTime: number, method: TimerMethod, cycles?: number) => {

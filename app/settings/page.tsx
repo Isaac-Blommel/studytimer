@@ -2,11 +2,9 @@
 
 import Navigation from '../../components/Navigation'
 import { useSettings } from '../../contexts/SettingsContext'
-import { useSession } from '../../contexts/SessionContext'
 
 const SettingsPage = () => {
   const { settings, updateSetting, requestNotificationPermission } = useSettings()
-  const { clearAllSessions } = useSession()
 
   const handleToggle = async (setting: keyof typeof settings) => {
     if (setting === 'desktopNotifications' && !settings.desktopNotifications) {
@@ -21,17 +19,6 @@ const SettingsPage = () => {
     updateSetting(setting, !settings[setting])
   }
 
-  const handleClearAllData = async () => {
-    const confirmed = confirm('Are you sure you want to clear all study session data? This action cannot be undone.')
-    if (confirmed) {
-      try {
-        await clearAllSessions()
-        alert('All data has been cleared successfully.')
-      } catch (error) {
-        alert('Failed to clear data. Please try again.')
-      }
-    }
-  }
 
   return (
     <div className="min-h-screen gradient-bg">
