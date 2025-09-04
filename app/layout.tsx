@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "StudyTimer - Focus & Break Cycles",
-  description: "Automate your study sessions with timed breaks to prevent burnout",
+  description: "Automate your study sessions with timed breaks to prevent burnout - Now live!",
 };
 
 import { AuthProvider } from '../contexts/AuthContext';
