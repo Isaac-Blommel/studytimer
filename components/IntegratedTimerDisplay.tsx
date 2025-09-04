@@ -20,7 +20,7 @@ const IntegratedTimerDisplay = ({
   onComplete, 
   onSegmentChange 
 }: IntegratedTimerDisplayProps) => {
-  const { timerState, confirmTransition, cancelTransition } = useTimer()
+  const { timerState, confirmTransition } = useTimer()
   const { settings } = useSettings()
   const [segments, setSegments] = useState<StudySegment[]>([])
   const [currentSegment, setCurrentSegment] = useState<StudySegment | null>(null)
@@ -72,7 +72,6 @@ const IntegratedTimerDisplay = ({
         
         // Notify parent of segment changes and show notifications
         if (lastSegmentType !== segmentInfo.segment.type) {
-          const currentMinutes = Math.floor(currentTime / 60)
           const transitionTime = segmentInfo.segment.start
           
           setLastSegmentType(segmentInfo.segment.type)
