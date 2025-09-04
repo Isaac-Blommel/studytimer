@@ -42,7 +42,14 @@
       "Bash(npm run build:*)",
       "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
       "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
+      "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)"
     ],
     "deny": [],
     "ask": []

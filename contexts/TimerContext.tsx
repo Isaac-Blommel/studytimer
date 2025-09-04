@@ -157,9 +157,7 @@ export const TimerProvider = ({ children }: { children: ReactNode }) => {
     let interval: NodeJS.Timeout | null = null
 
     if (timerState.isActive && !timerState.isPaused && timerState.timeLeft > 0) {
-      // Check development mode setting from localStorage
-      const developmentMode = getSettingValue('developmentMode', false)
-      const intervalDuration = developmentMode ? 100 : 1000 // 10x faster in dev mode
+      const intervalDuration = 1000 // Standard 1 second interval
       
       interval = setInterval(() => {
         setTimerState(prevState => {

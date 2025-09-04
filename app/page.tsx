@@ -43,8 +43,6 @@ export default function Home() {
   // Completion state
   const [showCompletion, setShowCompletion] = useState(false)
   
-  // Test button state
-  const [isTestingSave, setIsTestingSave] = useState(false)
 
   const handleCompletionFinish = () => {
     // Reset everything and go back to method selection
@@ -222,34 +220,6 @@ export default function Home() {
   }
 
 
-  // Test button function (same as before)
-  const handleTestSaveSession = async () => {
-    setIsTestingSave(true)
-    console.log('🧪 Testing session save pipeline...')
-    
-    try {
-      const testSessionData = {
-        duration: 5,
-        studyTopic: 'Test Session - Pipeline Verification',
-        notes: `Test session created at ${new Date().toLocaleTimeString()} to verify database connection and session saving pipeline.`,
-        method: 'Test Method',
-        breakDuration: 0,
-        cycles: 1,
-        totalDuration: 5,
-        completionStatus: 'completed',
-        methodVariation: '5/0'
-      }
-      
-      await addSession(testSessionData)
-      alert('✅ SUCCESS! Test session saved to database. Check your Profile → Study History to see it.')
-      
-    } catch (error) {
-      console.error('❌ Test session save failed:', error)
-      alert('❌ FAILED! Test session could not be saved. Check console for details.')
-    } finally {
-      setIsTestingSave(false)
-    }
-  }
 
 
   return (
@@ -276,41 +246,6 @@ export default function Home() {
                 onMethodSelect={handleMethodSelect}
               />
               
-              {/* Test Button */}
-              <div className="mt-8 pt-8 border-t border-border/30">
-                <div className="text-center mb-4">
-                  <p className="text-sm text-muted">🧪 Development Testing</p>
-                </div>
-                <button
-                  onClick={handleTestSaveSession}
-                  disabled={isTestingSave}
-                  className={`relative overflow-hidden bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed ${
-                    isTestingSave ? 'animate-pulse' : ''
-                  }`}
-                >
-                  {isTestingSave && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-                  )}
-                  
-                  <div className="relative flex items-center justify-center space-x-2">
-                    {isTestingSave ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>Testing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>⚡</span>
-                        <span>Test Database Save</span>
-                        <span>⚡</span>
-                      </>
-                    )}
-                  </div>
-                </button>
-                <div className="text-center mt-2">
-                  <p className="text-xs text-muted">Adds a 5min test session to verify pipeline</p>
-                </div>
-              </div>
             </div>
           )}
 

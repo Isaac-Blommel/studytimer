@@ -365,3 +365,158 @@ body {
 .stagger-3 { animation-delay: 0.3s; }
 .stagger-4 { animation-delay: 0.4s; }
 .stagger-5 { animation-delay: 0.5s; }
+
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+/* Custom Podium Glows */
+.glow-gold {
+  box-shadow: 
+    0 0 30px rgba(251, 191, 36, 0.4),
+    0 0 60px rgba(251, 191, 36, 0.2),
+    0 0 90px rgba(251, 191, 36, 0.1);
+}
+
+.glow-silver {
+  box-shadow: 
+    0 0 25px rgba(148, 163, 184, 0.3),
+    0 0 50px rgba(148, 163, 184, 0.15),
+    0 0 75px rgba(148, 163, 184, 0.08);
+}
+
+.glow-bronze {
+  box-shadow: 
+    0 0 20px rgba(251, 146, 60, 0.25),
+    0 0 40px rgba(251, 146, 60, 0.12),
+    0 0 60px rgba(251, 146, 60, 0.06);
+}
+
+/* Spotlight Background */
+.spotlight-bg {
+  background: 
+    radial-gradient(ellipse 800px 600px at center, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 400px 300px at center, rgba(59, 130, 246, 0.08) 0%, transparent 60%);
+}
+
+/* Enhanced Star Pattern Background */
+.star-pattern-bg {
+  background-image: 
+    /* Main radial lines forming star - made wider */
+    linear-gradient(0deg, transparent 44%, rgba(255,255,255,0.03) 48%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 52%, transparent 54%),
+    linear-gradient(30deg, transparent 44%, rgba(255,255,255,0.02) 48%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.02) 52%, transparent 54%),
+    linear-gradient(60deg, transparent 44%, rgba(255,255,255,0.02) 48%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.02) 52%, transparent 54%),
+    linear-gradient(90deg, transparent 44%, rgba(255,255,255,0.03) 48%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 52%, transparent 54%),
+    linear-gradient(120deg, transparent 44%, rgba(255,255,255,0.02) 48%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.02) 52%, transparent 54%),
+    linear-gradient(150deg, transparent 44%, rgba(255,255,255,0.02) 48%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.02) 52%, transparent 54%);
+  background-size: 100% 100%;
+  background-position: center;
+}
+
+/* Profile Picture Shimmer Effects */
+.avatar-shimmer-gold {
+  position: relative;
+  overflow: visible;
+}
+
+.avatar-shimmer-gold::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #fbbf24, #f59e0b, #fbbf24, #d97706, #fbbf24);
+  opacity: 0.6;
+  z-index: -1;
+  animation: rotate 3s linear infinite;
+}
+
+.avatar-shimmer-gold::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 70%);
+  z-index: -1;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.avatar-shimmer-silver {
+  position: relative;
+  overflow: visible;
+}
+
+.avatar-shimmer-silver::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #e2e8f0, #cbd5e1, #94a3b8, #cbd5e1, #e2e8f0);
+  opacity: 0.5;
+  z-index: -1;
+  animation: rotate 4s linear infinite;
+}
+
+.avatar-shimmer-silver::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(148,163,184,0.2) 0%, transparent 70%);
+  z-index: -1;
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+.avatar-shimmer-bronze {
+  position: relative;
+  overflow: visible;
+}
+
+.avatar-shimmer-bronze::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #fb923c, #f97316, #ea580c, #f97316, #fb923c);
+  opacity: 0.4;
+  z-index: -1;
+  animation: rotate 5s linear infinite;
+}
+
+.avatar-shimmer-bronze::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251,146,60,0.15) 0%, transparent 70%);
+  z-index: -1;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}

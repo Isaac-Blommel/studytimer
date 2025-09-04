@@ -7,7 +7,6 @@ interface SettingsState {
   soundEnabled: boolean
   autoBreaks: boolean
   desktopNotifications: boolean
-  developmentMode: boolean
 }
 
 interface SettingsContextType {
@@ -23,8 +22,7 @@ const SETTINGS_STORAGE_KEY = 'study-timer-settings'
 const defaultSettings: SettingsState = {
   soundEnabled: true,
   autoBreaks: true,
-  desktopNotifications: false,
-  developmentMode: false
+  desktopNotifications: false
 }
 
 // Utility function to safely parse and validate settings

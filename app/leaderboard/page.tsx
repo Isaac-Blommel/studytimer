@@ -169,104 +169,178 @@ const LeaderboardPage = () => {
             </div>
           </div>
 
-          {/* Professional Podium */}
+          {/* Elite Podium with Pillars */}
           {topThree.length > 0 && (
-            <div className="glass-effect rounded-xl p-8 mb-8 animate-slide-in">
-              <h2 className="text-2xl font-bold text-center text-foreground mb-8">Top Performers</h2>
+            <div className="glass-effect rounded-xl p-8 mb-8 animate-slide-in relative overflow-hidden">
+              {/* Enhanced Star Pattern Background */}
+              <div className="absolute inset-0 star-pattern-bg pointer-events-none"></div>
+              <div className="absolute inset-0 spotlight-bg pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/3 to-transparent pointer-events-none"></div>
               
-              <div className="flex items-end justify-center space-x-8 max-w-4xl mx-auto">
-                {/* 2nd Place */}
+              <h2 className="text-2xl font-bold text-center text-foreground mb-12 relative z-10">Top Performers</h2>
+              
+              <div className="flex items-end justify-center space-x-12 max-w-5xl mx-auto relative z-10">
+                {/* 2nd Place Pillar */}
                 {topThree[1] && (
-                  <div className="flex flex-col items-center min-w-[180px]" style={{animationDelay: '0.2s'}}>
-                    <div className="relative mb-4">
-                      {topThree[1].avatar_url ? (
-                        <img
-                          src={topThree[1].avatar_url}
-                          alt={topThree[1].name}
-                          className="w-16 h-16 rounded-full border-4 border-slate-400 shadow-lg"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white font-bold text-lg shadow-lg border-4 border-slate-400">
+                  <div className="flex flex-col items-center" style={{animationDelay: '0.2s'}}>
+                    {/* User Info Above Pillar */}
+                    <div className="flex flex-col items-center mb-6">
+                      <div className="relative mb-3 avatar-shimmer-silver">
+                        {topThree[1].avatar_url ? (
+                          <img
+                            src={topThree[1].avatar_url}
+                            alt={topThree[1].name}
+                            className="w-16 h-16 rounded-full border-4 border-slate-300 shadow-xl relative z-10"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              target.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br from-slate-300 to-slate-500 flex items-center justify-center text-white font-bold text-lg shadow-xl border-4 border-slate-300 relative z-10 ${topThree[1].avatar_url ? 'hidden' : ''}`}>
                           {topThree[1].name.charAt(0).toUpperCase()}
                         </div>
-                      )}
-                      <div className="absolute -bottom-2 -right-2">
-                        <MedalIcon rank={2} size="small" />
                       </div>
+                      <h3 className="font-bold text-foreground text-lg mb-1 text-center">{topThree[1].name}</h3>
                     </div>
-                    <h3 className="font-bold text-foreground text-lg mb-2 text-center">{topThree[1].name}</h3>
-                    <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-200">
-                      <p className="text-2xl font-bold text-slate-700 mb-1">{formatTime(topThree[1].total_study_time)}</p>
-                      <p className="text-sm text-slate-600">{topThree[1].total_sessions} sessions</p>
-                    </div>
-                    <div className="w-24 h-12 bg-gradient-to-t from-slate-500 to-slate-400 rounded-t-lg mt-4 flex items-center justify-center border-2 border-slate-300">
-                      <span className="text-white font-bold text-sm">2nd</span>
+                    
+                    {/* Silver Pillar */}
+                    <div className="relative">
+                      <div className="w-32 h-36 bg-gradient-to-t from-slate-600 via-slate-400 to-slate-300 rounded-t-2xl border-4 border-slate-400 shadow-2xl glow-silver relative overflow-hidden">
+                        {/* Pillar Decorations */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10"></div>
+                        <div className="absolute top-2 left-2 w-2 h-2 bg-white/40 rounded-full"></div>
+                        <div className="absolute top-4 right-3 w-1 h-1 bg-white/30 rounded-full"></div>
+                        
+                        {/* 2nd Place Badge */}
+                        <div className="absolute top-5 left-1/2 transform -translate-x-1/2">
+                          <div className="bg-white/90 backdrop-blur-sm rounded-full w-12 h-12 flex items-center justify-center border-3 border-slate-400 shadow-lg">
+                            <span className="text-slate-700 font-bold text-base">2nd</span>
+                          </div>
+                        </div>
+                        
+                        {/* Stats */}
+                        <div className="absolute bottom-4 inset-x-2 text-center">
+                          <div className="text-white font-bold text-lg mb-1 drop-shadow-lg">{formatTime(topThree[1].total_study_time)}</div>
+                          <div className="text-slate-100 text-xs font-medium drop-shadow">{topThree[1].total_sessions} sessions</div>
+                        </div>
+                      </div>
+                      
+                      {/* Pillar Base */}
+                      <div className="w-32 h-4 bg-gradient-to-r from-slate-700 via-slate-500 to-slate-700 rounded-b-lg border-x-4 border-b-4 border-slate-400"></div>
                     </div>
                   </div>
                 )}
 
-                {/* 1st Place - Larger */}
+                {/* 1st Place Pillar - Tallest */}
                 {topThree[0] && (
-                  <div className="flex flex-col items-center min-w-[200px]" style={{animationDelay: '0.1s'}}>
-                    <div className="relative mb-6">
-                      {topThree[0].avatar_url ? (
-                        <img
-                          src={topThree[0].avatar_url}
-                          alt={topThree[0].name}
-                          className="w-20 h-20 rounded-full border-4 border-yellow-400 shadow-xl"
-                        />
-                      ) : (
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-bold text-xl shadow-xl border-4 border-yellow-400">
+                  <div className="flex flex-col items-center" style={{animationDelay: '0.1s'}}>
+                    {/* User Info Above Pillar */}
+                    <div className="flex flex-col items-center mb-8">
+                      <div className="relative mb-4 avatar-shimmer-gold">
+                        {topThree[0].avatar_url ? (
+                          <img
+                            src={topThree[0].avatar_url}
+                            alt={topThree[0].name}
+                            className="w-20 h-20 rounded-full border-4 border-yellow-400 shadow-2xl relative z-10"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              target.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div className={`w-20 h-20 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-600 flex items-center justify-center text-white font-bold text-xl shadow-2xl border-4 border-yellow-400 relative z-10 ${topThree[0].avatar_url ? 'hidden' : ''}`}>
                           {topThree[0].name.charAt(0).toUpperCase()}
                         </div>
-                      )}
-                      <div className="absolute -bottom-2 -right-2">
-                        <MedalIcon rank={1} size="large" />
                       </div>
+                      <h3 className="font-bold text-foreground text-xl mb-2 text-center">{topThree[0].name}</h3>
                     </div>
-                    <h3 className="font-bold text-foreground text-xl mb-3 text-center">{topThree[0].name}</h3>
-                    <div className="bg-yellow-50 rounded-xl p-6 text-center border-2 border-yellow-200 shadow-lg">
-                      <p className="text-3xl font-bold text-yellow-700 mb-2">
-                        {formatTime(topThree[0].total_study_time)}
-                      </p>
-                      <p className="text-sm text-yellow-600 font-medium">{topThree[0].total_sessions} sessions</p>
-                    </div>
-                    <div className="w-28 h-16 bg-gradient-to-t from-yellow-600 to-yellow-400 rounded-t-lg mt-4 flex items-center justify-center border-2 border-yellow-300 shadow-lg">
-                      <span className="text-white font-bold text-lg">1st</span>
+                    
+                    {/* Gold Pillar - Tallest */}
+                    <div className="relative">
+                      <div className="w-36 h-44 bg-gradient-to-t from-yellow-700 via-yellow-500 to-yellow-300 rounded-t-2xl border-4 border-yellow-400 shadow-2xl glow-gold relative overflow-hidden">
+                        {/* Pillar Decorations */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-yellow-200/30 via-transparent to-yellow-800/20"></div>
+                        <div className="absolute top-3 left-3 w-3 h-3 bg-yellow-100/60 rounded-full"></div>
+                        <div className="absolute top-6 right-4 w-2 h-2 bg-yellow-100/40 rounded-full"></div>
+                        <div className="absolute bottom-8 left-4 w-1 h-1 bg-yellow-100/50 rounded-full"></div>
+                        
+                        {/* 1st Place Badge */}
+                        <div className="absolute top-7 left-1/2 transform -translate-x-1/2">
+                          <div className="bg-yellow-100 backdrop-blur-sm rounded-full w-14 h-14 flex items-center justify-center border-4 border-yellow-400 shadow-xl">
+                            <span className="text-yellow-800 font-bold text-lg">1st</span>
+                          </div>
+                        </div>
+                        
+                        {/* Stats */}
+                        <div className="absolute bottom-6 inset-x-3 text-center">
+                          <div className="text-white font-bold text-xl mb-2 drop-shadow-lg">{formatTime(topThree[0].total_study_time)}</div>
+                          <div className="text-yellow-100 text-sm font-medium drop-shadow">{topThree[0].total_sessions} sessions</div>
+                        </div>
+                      </div>
+                      
+                      {/* Pillar Base */}
+                      <div className="w-36 h-5 bg-gradient-to-r from-yellow-800 via-yellow-600 to-yellow-800 rounded-b-xl border-x-4 border-b-4 border-yellow-400"></div>
                     </div>
                   </div>
                 )}
 
-                {/* 3rd Place */}
+                {/* 3rd Place Pillar */}
                 {topThree[2] && (
-                  <div className="flex flex-col items-center min-w-[180px]" style={{animationDelay: '0.3s'}}>
-                    <div className="relative mb-4">
-                      {topThree[2].avatar_url ? (
-                        <img
-                          src={topThree[2].avatar_url}
-                          alt={topThree[2].name}
-                          className="w-16 h-16 rounded-full border-4 border-orange-400 shadow-lg"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-lg border-4 border-orange-400">
+                  <div className="flex flex-col items-center" style={{animationDelay: '0.3s'}}>
+                    {/* User Info Above Pillar */}
+                    <div className="flex flex-col items-center mb-6">
+                      <div className="relative mb-3 avatar-shimmer-bronze">
+                        {topThree[2].avatar_url ? (
+                          <img
+                            src={topThree[2].avatar_url}
+                            alt={topThree[2].name}
+                            className="w-16 h-16 rounded-full border-4 border-orange-400 shadow-xl relative z-10"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              target.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-700 flex items-center justify-center text-white font-bold text-lg shadow-xl border-4 border-orange-400 relative z-10 ${topThree[2].avatar_url ? 'hidden' : ''}`}>
                           {topThree[2].name.charAt(0).toUpperCase()}
                         </div>
-                      )}
-                      <div className="absolute -bottom-2 -right-2">
-                        <MedalIcon rank={3} size="small" />
                       </div>
+                      <h3 className="font-bold text-foreground text-lg mb-1 text-center">{topThree[2].name}</h3>
                     </div>
-                    <h3 className="font-bold text-foreground text-lg mb-2 text-center">{topThree[2].name}</h3>
-                    <div className="bg-orange-50 rounded-xl p-4 text-center border border-orange-200">
-                      <p className="text-2xl font-bold text-orange-700 mb-1">{formatTime(topThree[2].total_study_time)}</p>
-                      <p className="text-sm text-orange-600">{topThree[2].total_sessions} sessions</p>
-                    </div>
-                    <div className="w-24 h-10 bg-gradient-to-t from-orange-600 to-orange-400 rounded-t-lg mt-4 flex items-center justify-center border-2 border-orange-300">
-                      <span className="text-white font-bold text-sm">3rd</span>
+                    
+                    {/* Bronze Pillar - Shortest */}
+                    <div className="relative">
+                      <div className="w-32 h-32 bg-gradient-to-t from-orange-800 via-orange-600 to-orange-400 rounded-t-2xl border-4 border-orange-500 shadow-2xl glow-bronze relative overflow-hidden">
+                        {/* Pillar Decorations */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-200/20 via-transparent to-orange-900/15"></div>
+                        <div className="absolute top-2 left-2 w-2 h-2 bg-orange-200/40 rounded-full"></div>
+                        <div className="absolute top-3 right-3 w-1 h-1 bg-orange-100/30 rounded-full"></div>
+                        
+                        {/* 3rd Place Badge */}
+                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+                          <div className="bg-orange-100/90 backdrop-blur-sm rounded-full w-10 h-10 flex items-center justify-center border-3 border-orange-500 shadow-lg">
+                            <span className="text-orange-800 font-bold text-sm">3rd</span>
+                          </div>
+                        </div>
+                        
+                        {/* Stats */}
+                        <div className="absolute bottom-3 inset-x-2 text-center">
+                          <div className="text-white font-bold text-base mb-1 drop-shadow-lg">{formatTime(topThree[2].total_study_time)}</div>
+                          <div className="text-orange-100 text-xs font-medium drop-shadow">{topThree[2].total_sessions} sessions</div>
+                        </div>
+                      </div>
+                      
+                      {/* Pillar Base */}
+                      <div className="w-32 h-4 bg-gradient-to-r from-orange-900 via-orange-700 to-orange-900 rounded-b-lg border-x-4 border-b-4 border-orange-500"></div>
                     </div>
                   </div>
                 )}
               </div>
+              
             </div>
           )}
 
@@ -346,12 +420,16 @@ const LeaderboardPage = () => {
                         src={user.avatar_url}
                         alt={user.name}
                         className="w-10 h-10 rounded-full border-2 border-border shadow-md"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.nextElementSibling?.classList.remove('hidden');
+                        }}
                       />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-foreground font-bold text-sm shadow-md border-2 border-border">
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                    ) : null}
+                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-foreground font-bold text-sm shadow-md border-2 border-border ${user.avatar_url ? 'hidden' : ''}`}>
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
                     <div>
                       <div className={`font-medium ${
                         currentUser && user.id === currentUser.id ? 'text-primary font-bold' : 'text-foreground'

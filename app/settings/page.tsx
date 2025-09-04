@@ -99,39 +99,9 @@ const SettingsPage = () => {
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
-                  <div>
-                    <div className="font-medium text-foreground">Development Mode</div>
-                    <div className="text-sm text-muted">Timer runs 10x faster for testing (dev only)</div>
-                  </div>
-                  <button 
-                    onClick={() => handleToggle('developmentMode')}
-                    className={`w-12 h-6 rounded-full relative transition-colors ${
-                      settings.developmentMode ? 'bg-warning' : 'bg-border'
-                    }`}
-                  >
-                    <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${
-                      settings.developmentMode ? 'right-0.5' : 'left-0.5'
-                    }`}></div>
-                  </button>
-                </div>
               </div>
             </div>
 
-            <div className="glass-effect rounded-xl p-8">
-              <h3 className="text-xl font-semibold text-foreground mb-6 text-center">Account & Data</h3>
-              <div className="space-y-4">
-                <button className="w-full bg-primary hover:bg-primary-hover text-white py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left">
-                  Connect Google Calendar
-                </button>
-                <button 
-                  onClick={handleClearAllData}
-                  className="w-full bg-danger/20 hover:bg-danger/30 text-danger border border-danger/30 py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 text-left"
-                >
-                  Clear All Data
-                </button>
-              </div>
-            </div>
 
             <div className="glass-effect rounded-xl p-8">
               <h3 className="text-xl font-semibold text-foreground mb-6 text-center">About</h3>

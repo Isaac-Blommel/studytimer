@@ -156,12 +156,6 @@ const IntegratedTimerDisplay = ({
         onCancel={() => {}} // No cancel functionality needed
       />
       <div className="flex flex-col items-center space-y-8 animate-slide-in">
-      {/* Development Mode Indicator */}
-      {settings.developmentMode && (
-        <div className="bg-warning/20 border-2 border-warning text-warning px-4 py-2 rounded-lg font-bold text-sm animate-pulse">
-          DEVELOPMENT MODE - 10X SPEED
-        </div>
-      )}
       
       {/* Pie Chart Timer */}
       <PieChartTimer
