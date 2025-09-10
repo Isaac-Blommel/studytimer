@@ -49,7 +49,7 @@ const CustomTimerSetup = ({ onSetup, onBack }: CustomTimerSetupProps) => {
               <input
                 type="number"
                 value={workDuration}
-                onChange={(e) => setWorkDuration(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setWorkDuration(e.target.value)}
                 className="w-20 bg-secondary border border-border rounded-lg px-4 py-3 text-foreground text-center text-2xl font-mono focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
                 min="1"
                 max="480"
@@ -70,7 +70,7 @@ const CustomTimerSetup = ({ onSetup, onBack }: CustomTimerSetupProps) => {
               <input
                 type="number"
                 value={breakDuration}
-                onChange={(e) => setBreakDuration(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBreakDuration(e.target.value)}
                 className="w-20 bg-secondary border border-border rounded-lg px-4 py-3 text-foreground text-center text-2xl font-mono focus:ring-2 focus:ring-warning focus:border-transparent transition-all duration-200"
                 min="0"
                 max="60"

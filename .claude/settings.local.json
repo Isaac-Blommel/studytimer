@@ -52,7 +52,8 @@
       "Read(c:\\Users\\piano\\OneDrive\\Pictures\\Screenshots/**)",
       "Bash(npm i:*)",
       "Bash(vercel:*)",
-      "Read(//c/Users/piano/OneDrive/Pictures/Screenshots/**)"
+      "Read(//c/Users/piano/OneDrive/Pictures/Screenshots/**)",
+      "Bash(gh api:*)"
     ],
     "deny": [],
     "ask": []

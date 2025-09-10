@@ -194,7 +194,7 @@ const LeaderboardPage = () => {
                             width={64}
                             height={64}
                             className="w-16 h-16 rounded-full border-4 border-slate-300 shadow-xl relative z-10"
-                            onError={(e) => {
+                            onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
                               target.nextElementSibling?.classList.remove('hidden');
@@ -249,7 +249,7 @@ const LeaderboardPage = () => {
                             width={80}
                             height={80}
                             className="w-20 h-20 rounded-full border-4 border-yellow-400 shadow-2xl relative z-10"
-                            onError={(e) => {
+                            onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
                               target.nextElementSibling?.classList.remove('hidden');
@@ -305,7 +305,7 @@ const LeaderboardPage = () => {
                             width={64}
                             height={64}
                             className="w-16 h-16 rounded-full border-4 border-orange-400 shadow-xl relative z-10"
-                            onError={(e) => {
+                            onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
                               target.nextElementSibling?.classList.remove('hidden');

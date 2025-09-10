@@ -151,7 +151,7 @@ const SessionLogger = ({ isVisible, duration, onSave, onSkip }: SessionLoggerPro
                   <input
                     type="text"
                     value={studyTopic}
-                    onChange={(e) => setStudyTopic(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStudyTopic(e.target.value)}
                     className="w-full bg-secondary/50 border-2 border-border rounded-xl px-4 py-3 text-foreground placeholder-muted focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 backdrop-blur-sm"
                     placeholder="e.g., Mathematics, History, Programming..."
                     maxLength={100}
@@ -166,7 +166,7 @@ const SessionLogger = ({ isVisible, duration, onSave, onSkip }: SessionLoggerPro
                   <div className="relative">
                     <textarea
                       value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
                       className="w-full h-24 bg-secondary/50 border-2 border-border rounded-xl px-4 py-3 text-foreground placeholder-muted resize-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300 backdrop-blur-sm"
                       placeholder="Share your insights, breakthroughs, or what you learned..."
                       maxLength={500}

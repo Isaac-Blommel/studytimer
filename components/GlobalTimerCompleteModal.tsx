@@ -76,7 +76,7 @@ const GlobalTimerCompleteModal = () => {
               id="studyTopic"
               type="text"
               value={studyTopic}
-              onChange={(e) => setStudyTopic(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStudyTopic(e.target.value)}
               placeholder="e.g., Calculus derivatives, Spanish vocabulary, History chapter 5..."
               className="w-full p-3 rounded-lg border border-border bg-secondary/50 text-foreground placeholder-muted focus:border-primary focus:outline-none transition-colors"
               maxLength={100}
@@ -92,7 +92,7 @@ const GlobalTimerCompleteModal = () => {
             <textarea
               id="notes"
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
               placeholder="How did the session go? What did you accomplish? Any challenges?"
               className="w-full p-3 rounded-lg border border-border bg-secondary/50 text-foreground placeholder-muted focus:border-primary focus:outline-none transition-colors resize-none"
               rows={3}
