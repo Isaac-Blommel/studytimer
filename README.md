@@ -2,9 +2,9 @@
 
 A modern, gamified study timer application designed to help students maintain focus and build healthy study habits through automated break cycles and progress tracking.
 
-## 🚀 Features
+## Features
 
-### ⏱️ Timer System
+### Timer System
 - **Multiple Study Methods**: 
   - Pomodoro (25 min work, 5 min break)
   - 50/10 Method (50 min work, 10 min break)
@@ -22,7 +22,7 @@ A modern, gamified study timer application designed to help students maintain fo
   - Visual state changes (green for focus, yellow for paused/break)
   - Real-time countdown with pause/resume functionality
 
-### 📝 Session Tracking
+### Session Tracking
 - **Creative Session Logger**: 
   - Typewriter animation for prompts
   - Randomized encouraging questions
@@ -32,7 +32,7 @@ A modern, gamified study timer application designed to help students maintain fo
 - **Study History**: Complete session logs with timestamps and notes
 - **Statistics Dashboard**: Total study time, session count, streaks
 
-### 🏆 Gamification & Leaderboards
+### Gamification & Leaderboards
 - **Multi-timeframe Rankings**: Weekly, Monthly, and All-time leaderboards
 - **Custom Medal System**: 
   - Gold (#1), Silver (#2), Bronze (#3) with special designs
@@ -44,7 +44,7 @@ A modern, gamified study timer application designed to help students maintain fo
   - Session milestones
   - Time-based achievements
 
-### 👤 User Management
+### User Management
 - **Profile System**: 
   - Personal statistics overview
   - Study session history
@@ -56,7 +56,7 @@ A modern, gamified study timer application designed to help students maintain fo
   - Google Calendar integration (placeholder)
   - Data export/import options
 
-### 🎨 Design & UX
+### Design & UX
 - **Dark Theme**: Professional dark color scheme optimized for focus
 - **Smooth Animations**: 
   - Slide-in effects for page transitions
@@ -69,13 +69,13 @@ A modern, gamified study timer application designed to help students maintain fo
 - **Responsive Design**: Desktop-first approach with mobile compatibility
 - **Accessibility**: WCAG-compliant color contrast and navigation
 
-### 🔧 Technical Features
+### Technical Features
 - **Single-Page Flow**: No page redirects during timer setup
 - **State Management**: Comprehensive app state tracking
 - **Real-time Updates**: Live timer with precise countdown
 - **Local Storage**: Session persistence and user preferences
 
-## 🏗️ Technical Stack
+##  Technical Stack
 
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Styling**: Tailwind CSS 4 with custom animations
@@ -83,7 +83,7 @@ A modern, gamified study timer application designed to help students maintain fo
 - **Authentication**: Google OAuth via Supabase Auth
 - **Deployment**: Vercel (ready)
 
-## 📊 Database Schema
+## Database Schema
 
 ### Tables
 - **users**: User profiles with Google Auth integration
@@ -96,19 +96,19 @@ A modern, gamified study timer application designed to help students maintain fo
 - **Optimized Indexes**: Fast leaderboard queries
 - **Views**: Pre-computed leaderboards for different timeframes
 
-## 🔐 Security
+## Security
 - **Environment Variables**: All API keys secured in `.env.local`
 - **Row Level Security**: Database-level access control
 - **Authentication**: Secure Google OAuth flow
 - **Data Validation**: Input sanitization and length limits
 
-## 📱 Navigation
+## Navigation
 - **Logo**: Clicking StudyTimer logo returns to timer page
 - **Main Navigation**: Timer, Profile, Leaderboard (equal-width buttons)
 - **Settings**: Dedicated settings page accessible from top-right
 - **Breadcrumb Flow**: Clear back navigation through multi-step setup
 
-## 🎯 User Experience Flow
+## User Experience Flow
 
 ### First Time Setup
 1. **Method Selection**: Choose from 5 study methods
@@ -125,7 +125,7 @@ A modern, gamified study timer application designed to help students maintain fo
 - Historical data and statistics
 - Leaderboard competition
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 18+
@@ -169,7 +169,7 @@ npm run dev
 6. **Open browser**
 Navigate to `http://localhost:3001`
 
-## 🗂️ Project Structure
+##  Project Structure
 
 ```
 my-app/
@@ -193,7 +193,7 @@ my-app/
 └── .env.local            # Environment variables (not in repo)
 ```
 
-## 🎨 Customization
+## Customization
 
 ### Color Scheme
 - **Primary**: Blue (#3b82f6)
@@ -208,26 +208,18 @@ my-app/
 - **Triggers**: Hover, focus, and state changes
 - **Performance**: Hardware-accelerated transforms
 
-## 📈 Performance
+## Performance
 - **Lighthouse Score**: 95+ on all metrics
 - **Bundle Size**: Optimized with Next.js automatic splitting
 - **Database**: Indexed queries for sub-100ms response times
 - **Caching**: Supabase edge caching for global performance
 
-## 🔮 Future Enhancements
-- **Mobile App**: React Native version
-- **Team Features**: Group study sessions and challenges
-- **Advanced Analytics**: Detailed productivity insights
-- **Study Materials**: Integration with note-taking apps
-- **Social Features**: Friend connections and study groups
-- **AI Insights**: Personalized study recommendations
-
-## 📄 License
+## License
 This project is licensed under the MIT License.
 
-## 🤝 Contributing
+## Contributing
 Contributions are welcome! Please read the contributing guidelines before submitting PRs.
 
 ---
 
-**Built with ❤️ for students who want to maintain focus and build healthy study habits.**
+**Built with for students who want to maintain focus and build healthy study habits.**
