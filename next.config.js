@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Temporarily enable linting to see what needs fixing
-  // eslint: {
-  //   ignoreDuringBuilds: true,
-  // },
+  // ESLint enabled - TypeScript errors have been resolved
 };
 
 module.exports = nextConfig;
