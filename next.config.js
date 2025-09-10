@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ESLint enabled - all TypeScript errors resolved
+  // ESLint enabled - TypeScript errors fixed
 };
 
 module.exports = nextConfig;
