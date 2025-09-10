@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Navigation from '../../components/Navigation'
 import MedalIcon from '../../components/MedalIcon'
 import FocusBackground from '../../components/FocusBackground'
@@ -187,9 +188,11 @@ const LeaderboardPage = () => {
                     <div className="flex flex-col items-center mb-6">
                       <div className="relative mb-3 avatar-shimmer-silver">
                         {topThree[1].avatar_url ? (
-                          <img
+                          <Image
                             src={topThree[1].avatar_url}
                             alt={topThree[1].name}
+                            width={64}
+                            height={64}
                             className="w-16 h-16 rounded-full border-4 border-slate-300 shadow-xl relative z-10"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -240,9 +243,11 @@ const LeaderboardPage = () => {
                     <div className="flex flex-col items-center mb-8">
                       <div className="relative mb-4 avatar-shimmer-gold">
                         {topThree[0].avatar_url ? (
-                          <img
+                          <Image
                             src={topThree[0].avatar_url}
                             alt={topThree[0].name}
+                            width={80}
+                            height={80}
                             className="w-20 h-20 rounded-full border-4 border-yellow-400 shadow-2xl relative z-10"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -294,9 +299,11 @@ const LeaderboardPage = () => {
                     <div className="flex flex-col items-center mb-6">
                       <div className="relative mb-3 avatar-shimmer-bronze">
                         {topThree[2].avatar_url ? (
-                          <img
+                          <Image
                             src={topThree[2].avatar_url}
                             alt={topThree[2].name}
+                            width={64}
+                            height={64}
                             className="w-16 h-16 rounded-full border-4 border-orange-400 shadow-xl relative z-10"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -416,9 +423,11 @@ const LeaderboardPage = () => {
                   
                   <div className="col-span-4 flex items-center space-x-3">
                     {user.avatar_url ? (
-                      <img
+                      <Image
                         src={user.avatar_url}
                         alt={user.name}
+                        width={40}
+                        height={40}
                         className="w-10 h-10 rounded-full border-2 border-border shadow-md"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Navigation from '../components/Navigation'
 import TimerMethodSelector from '../components/TimerMethodSelector'
@@ -40,7 +40,7 @@ export default function Home() {
   const [showCompletion, setShowCompletion] = useState(false)
   
 
-  const handleCompletionFinish = () => {
+  const handleCompletionFinish = useCallback(() => {
     // Reset everything and go back to method selection
     setShowCompletion(false)
     setSelectedMethod(null)
@@ -49,7 +49,7 @@ export default function Home() {
     setAppState('method-selection')
     // Also reset timer context
     stopTimerContext()
-  }
+  }, [stopTimerContext])
 
   // Handle reset from navigation logo click
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function Home() {
       // Clear the URL parameter without causing a page reload
       window.history.replaceState({}, '', window.location.pathname)
     }
-  }, [searchParams])
+  }, [searchParams, handleCompletionFinish, stopTimerContext])
 
   // Check if we should show the timer interface when page loads or timer state changes
   useEffect(() => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import PieChartTimer from './PieChartTimer'
 import { calculateStudySegments, getCurrentSegmentInfo, StudySegment } from '../utils/studySegments'
 import { useTimer } from '../contexts/TimerContext'
@@ -20,6 +20,8 @@ const IntegratedTimerDisplay = ({
   onComplete, 
   onSegmentChange 
 }: IntegratedTimerDisplayProps) => {
+  // Use useCallback to memoize onComplete to prevent dependency issues
+  const stableOnComplete = useCallback(onComplete, [onComplete])
   const { timerState, confirmTransition } = useTimer()
   const { settings } = useSettings()
   const [segments, setSegments] = useState<StudySegment[]>([])
@@ -114,9 +116,9 @@ const IntegratedTimerDisplay = ({
       
       // Note: Desktop notifications and sounds are now handled centrally in TimerContext
       
-      onComplete()
+      stableOnComplete()
     }
-  }, [timerState.timeLeft, totalDuration, timerState.isActive, settings.desktopNotifications]) // Remove onComplete from deps
+  }, [timerState.timeLeft, totalDuration, timerState.isActive, settings.desktopNotifications, stableOnComplete])
 
 
   const getStatusMessage = () => {
